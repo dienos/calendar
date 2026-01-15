@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
-
-import 'model/event.dart';
+import 'package:domain/entities/event.dart';
+import 'package:domain/repositories/calendar_repository.dart';
 
 class CalendarState {
   final DateTime selectedDay;
@@ -28,10 +28,22 @@ class CalendarState {
 }
 
 class CalendarViewModel extends StateNotifier<CalendarState> {
-  CalendarViewModel(super.state);
+  final CalendarRepository _repository;
+
+  CalendarViewModel(this._repository, CalendarState initialState) : super(initialState) {
+    _loadEvents();
+  }
+
+  Future<void> _loadEvents() async {
+    final eventsMap = await _repository.getEvents();
+    if (mounted) {
+      state = state.copyWith(events: eventsMap);
+    }
+  }
 
   List<Event> getEventsForDay(DateTime day) {
-    return state.events[day] ?? [];
+    final dateOnly = DateTime.utc(day.year, day.month, day.day);
+    return state.events[dateOnly] ?? [];
   }
 
   void onDaySelected(DateTime selectedDay, DateTime focusedDay) {
@@ -48,11 +60,8 @@ class CalendarViewModel extends StateNotifier<CalendarState> {
   }
 
   Future<void> addEvent(Event newEvent) async {
-    final currentEvents = state.events[state.selectedDay] ?? [];
-    final updatedEventsForDay = List<Event>.from(currentEvents)..add(newEvent);
-
-    final newEventsMap = Map<DateTime, List<Event>>.from(state.events);
-    newEventsMap[state.selectedDay] = updatedEventsForDay;
-    state = state.copyWith(events: newEventsMap);
+    final date = state.selectedDay;
+    await _repository.addEvent(date, newEvent);
+    await _loadEvents();
   }
 }
