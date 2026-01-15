@@ -38,7 +38,6 @@ class CalendarViewModel extends StateNotifier<CalendarState> {
   }
 
   Future<void> loadEvents() async {
-    // GetEventsUseCase를 호출합니다.
     final eventsMap = await _getEvents();
     if (mounted) {
       state = state.copyWith(events: eventsMap);

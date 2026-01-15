@@ -5,7 +5,6 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:domain/entities/event.dart';
 import 'calendar_view_model.dart';
 
-// PageController의 생명주기 관리를 위해 StatefulWidget으로 변경합니다.
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
 
@@ -16,14 +15,12 @@ class CalendarScreen extends ConsumerStatefulWidget {
 class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   late PageController _pageController;
 
-  // 달력의 시작일과 종료일은 여러 곳에서 사용되므로 상수로 정의합니다.
   final DateTime _firstDay = DateTime.utc(2020, 1, 1);
   final DateTime _lastDay = DateTime.utc(2030, 12, 31);
 
   @override
   void initState() {
     super.initState();
-    // 앱 진입 시 PageView가 오늘 날짜를 표시하도록 초기 페이지를 계산합니다.
     final today = DateTime.now();
     final initialPage = today.difference(_firstDay).inDays;
     _pageController = PageController(initialPage: initialPage);
@@ -35,6 +32,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     super.dispose();
   }
 
+  void _onTodayButtonPressed() {
+    final today = DateTime.now();
+    final calendarViewModel = ref.read(calendarViewModelProvider.notifier);
+
+    calendarViewModel.onDaySelected(today, today);
+
+    final pageIndex = today.difference(_firstDay).inDays;
+    _pageController.jumpToPage(pageIndex);
+  }
+
   @override
   Widget build(BuildContext context) {
     final calendarState = ref.watch(calendarViewModelProvider);
@@ -44,13 +51,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
-          children: const <Widget>[
+          children: <Widget>[
             DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue),
-              child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary),
+              child: const Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
-            ListTile(leading: Icon(Icons.settings), title: Text('Settings')),
-            ListTile(leading: Icon(Icons.info_outline), title: Text('About')),
+            const ListTile(leading: Icon(Icons.settings), title: Text('Settings')),
+            const ListTile(leading: Icon(Icons.info_outline), title: Text('About')),
           ],
         ),
       ),
@@ -63,9 +70,21 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
+        actions: [
+          // 3. '오늘' 버튼을 AppBar 오른쪽에 추가합니다.
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: TextButton(
+              onPressed: _onTodayButtonPressed,
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.primary,
+              ),
+              child: Text('오늘: ${DateTime.now().day}일'),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
-        // 1. 예시 데이터 텍스트를 '새로운 메모'로 변경합니다.
         onPressed: () => calendarViewModel.addEvent(const Event('새로운 메모')),
         child: const Icon(Icons.add),
       ),
@@ -80,26 +99,39 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             eventLoader: calendarViewModel.getEventsForDay,
             headerStyle: const HeaderStyle(titleCentered: true, formatButtonVisible: false),
             daysOfWeekHeight: 30,
+            calendarStyle: CalendarStyle(
+              selectedDecoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                shape: BoxShape.circle,
+              ),
+              selectedTextStyle: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+              todayDecoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                shape: BoxShape.circle,
+              ),
+              todayTextStyle: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+            ),
             onDaySelected: (selectedDay, focusedDay) {
               if (!isSameDay(calendarState.selectedDay, selectedDay)) {
                 calendarViewModel.onDaySelected(selectedDay, focusedDay);
                 final pageIndex = selectedDay.difference(_firstDay).inDays;
-                _pageController.animateToPage(
-                  pageIndex,
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOut,
-                );
+                _pageController.jumpToPage(pageIndex);
               }
             },
             onPageChanged: calendarViewModel.onPageChanged,
             calendarFormat: CalendarFormat.month,
+            pageAnimationDuration: const Duration(milliseconds: 400),
+            pageAnimationCurve: Curves.easeInOut,
             calendarBuilders: CalendarBuilders(
               markerBuilder: (context, date, events) {
                 if (events.isNotEmpty) {
                   return Positioned(
                     right: 1, bottom: 1,
                     child: Container(
-                      decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.blue),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                       width: 6.0, height: 6.0,
                     ),
                   );
@@ -125,14 +157,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 2. 페이지 제목을 '...기록'으로 변경합니다.
                       Text(
                         '${date.month}월 ${date.day}일 기록',
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       const SizedBox(height: 8.0),
                       Expanded(
-                        // 3. 기록이 없을 때의 메시지를 변경합니다.
                         child: events.isEmpty
                             ? const Center(child: Text('작성된 기록이 없습니다.'))
                             : ListView.builder(
