@@ -1,0 +1,18 @@
+# Flutter
+.packages
+.dart_tool/
+
+# Xcode
+.DS_Store
+build/
+.symlinks/
+/ios/Pods/
+/ios/Runner.xcworkspace
+/ios/Flutter/App.framework
+/ios/Flutter/Flutter.framework
+/ios/Flutter/Generated.xcconfig
+/ios/Flutter/flutter_export_environment.sh
+
+# CocoaPods
+/ios/Pods/
+/ios/Podfile.lock

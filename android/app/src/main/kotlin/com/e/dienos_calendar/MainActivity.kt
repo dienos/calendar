@@ -1,4 +1,4 @@
-package com.e.dienos_calendar
+package com.dienos.calendar
 
 import io.flutter.embedding.android.FlutterActivity
 

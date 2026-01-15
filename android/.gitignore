@@ -1,0 +1,28 @@
+# Miscellaneous
+*.class
+*.lock
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+
+# Android Studio
+.gradle/
+.idea/
+build/
+local.properties
+captures/
+*.iml
+.cxx/
+*/.cxx/
+
+# Flutter
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.dart_tool/
