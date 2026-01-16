@@ -14,12 +14,12 @@ class CalendarRepositoryImpl implements CalendarRepository {
     if (_database == null) return {};
 
     await Future.delayed(Duration.zero);
-    final allMemos = await _database!.memoDao.findAllMemos();
+    final allMemos = await _database.memoDao.findAllMemos();
     final Map<DateTime, List<DailyRecord>> events = {};
 
     for (var memoEntity in allMemos) {
       final date = DateTime.utc(memoEntity.date.year, memoEntity.date.month, memoEntity.date.day);
-      final memoRecord = MemoRecord(memoEntity.memoText); // text -> memoText
+      final memoRecord = MemoRecord(memoEntity.memoText);
 
       if (events[date] == null) {
         events[date] = [];
@@ -31,15 +31,18 @@ class CalendarRepositoryImpl implements CalendarRepository {
 
   @override
   Future<void> addEvent(DateTime date, DailyRecord newRecord) async {
-    if (_database == null) return;
+    if (_database == null) {
+      return;
+    }
 
     await Future.delayed(Duration.zero);
+
     if (newRecord is MemoRecord) {
       final memoEntity = MemoEntity(
         memoText: newRecord.text, // text -> memoText
         date: date,
       );
-      await _database!.memoDao.insertMemo(memoEntity);
+      await _database.memoDao.insertMemo(memoEntity);
     }
   }
 }

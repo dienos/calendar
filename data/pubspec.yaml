@@ -14,7 +14,7 @@ dependencies:
     path: ../domain
 
   floor: ^1.5.0
-  sqflite: ^2.3.3
+  # sqflite is a transitive dependency of floor, so we let floor manage it.
 
 dev_dependencies:
   flutter_test:

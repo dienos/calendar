@@ -29,7 +29,6 @@ class _AddMemoScreenState extends ConsumerState<AddMemoScreen> {
   Future<void> _onSave() async {
     final text = _memoController.text;
     if (text.isNotEmpty) {
-      // ViewModel의 addMemo 메소드를 호출할 때, 날짜 정보(widget.selectedDate)를 함께 전달합니다.
       await ref.read(calendarViewModelProvider.notifier).addMemo(widget.selectedDate, text);
 
       if (mounted) {

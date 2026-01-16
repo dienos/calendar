@@ -60,9 +60,7 @@ class CalendarViewModel extends StateNotifier<CalendarState> {
     state = state.copyWith(focusedDay: focusedDay);
   }
 
-  // 1. 메소드가 날짜를 직접 받도록 시그니처를 변경합니다.
   Future<void> addMemo(DateTime date, String text) async {
-    // 2. state.selectedDay 대신 전달받은 date를 사용합니다.
     await _addEvent(date, MemoRecord(text));
     await loadEvents();
   }

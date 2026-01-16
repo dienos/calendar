@@ -1,18 +1,59 @@
-# Flutter
-.packages
-.dart_tool/
 
 # Xcode
-.DS_Store
+#
+# Xcode builds intermediate and final products into a derived data directory. These
+# should not be git-committed.
+#
+# Store your derived data and other Xcode-generated files outside your project source
+# root. See the "Locations" panel in Xcode's preferences.
+
+## Derived Data
+#
+# The Derived Data directory is a build cache. As such, it can be regenerated at
+# any time and should not be committed.
+DerivedData/
+
+## Build directory
 build/
-.symlinks/
-/ios/Pods/
-/ios/Runner.xcworkspace
-/ios/Flutter/App.framework
-/ios/Flutter/Flutter.framework
-/ios/Flutter/Generated.xcconfig
-/ios/Flutter/flutter_export_environment.sh
+
+## User-specific files
+#
+# These files are user-specific and should not be git-committed.
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+
+## Other
+#
+# These are internal Xcode files that are generated on-the-fly. They should not
+# be git-committed.
+*.moved-aside
+*~.nib
+*~.xib
+*.xcworkspace
 
 # CocoaPods
-/ios/Pods/
-/ios/Podfile.lock
+#
+# We recommend against committing the Pods directory to version control.
+# It is sufficient to commit the Podfile.lock file.
+Pods/
+
+# Carthage
+#
+# If you are using Carthage, you can uncomment the following lines.
+#
+# Carthage/Build
+# Carthage/Checkouts
+
+# Flutter
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Generated plugin registrant
+Flutter/GeneratedPluginRegistrant.swift
