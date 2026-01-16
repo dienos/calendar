@@ -2,8 +2,10 @@ import 'package:dienos_calendar/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:domain/entities/event.dart';
-import 'calendar_view_model.dart';
+import 'package:domain/entities/daily_record.dart';
+import 'package:domain/entities/memo_record.dart';
+import '../add_memo/add_memo_screen.dart';
+import '../memo_list/memo_list_screen.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -45,41 +47,57 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final calendarState = ref.watch(calendarViewModelProvider);
-    final calendarViewModel = ref.read(calendarViewModelProvider.notifier);
 
     final pageViewWidget = PageView.builder(
       controller: _pageController,
       onPageChanged: (index) {
         final newSelectedDay = _firstDay.add(Duration(days: index));
         if (!isSameDay(calendarState.selectedDay, newSelectedDay)) {
-          calendarViewModel.onDaySelected(newSelectedDay, newSelectedDay);
+          ref.read(calendarViewModelProvider.notifier).onDaySelected(newSelectedDay, newSelectedDay);
         }
       },
       itemBuilder: (context, index) {
         final date = _firstDay.add(Duration(days: index));
-        final events = calendarViewModel.getEventsForDay(date);
+        final records = calendarState.events[DateTime.utc(date.year, date.month, date.day)] ?? [];
+
+        final String titleText;
+        final today = DateTime.now();
+
+        final memoRecords = records.whereType<MemoRecord>().toList();
+        final summaryWidgets = <Widget>[];
+
+        if (memoRecords.isNotEmpty) {
+          summaryWidgets.add(
+            ListTile(
+              leading: const Icon(Icons.notes),
+              title: Text('${memoRecords.length}개의 메모'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                // 2. onTap 콜백에서 MemoListScreen으로 이동합니다.
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => MemoListScreen(
+                      date: date,
+                      memos: memoRecords,
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        }
+
         return Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '${date.month}월 ${date.day}일엔 무슨 생각을 하였을까?',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
               const SizedBox(height: 8.0),
               Expanded(
-                child: events.isEmpty
+                child: records.isEmpty
                     ? const Center(child: Text('작성된 기록이 없습니다.'))
-                    : ListView.builder(
-                        itemCount: events.length,
-                        itemBuilder: (context, index) {
-                          final event = events[index];
-                          return ListTile(
-                            leading: const Icon(Icons.circle, size: 12),
-                            title: Text(event.title),
-                          );
-                        },
+                    : ListView(
+                        children: summaryWidgets,
                       ),
               ),
             ],
@@ -143,18 +161,28 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => calendarViewModel.addEvent(const Event('새로운 메모')),
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => AddMemoScreen(
+                selectedDate: calendarState.selectedDay,
+              ),
+            ),
+          );
+        },
         child: const Icon(Icons.add),
       ),
       body: OrientationBuilder(
         builder: (context, orientation) {
-          final calendarWidget = TableCalendar<Event>(
+          final calendarWidget = TableCalendar<DailyRecord>(
             locale: 'ko_KR',
             firstDay: _firstDay,
             lastDay: _lastDay,
             focusedDay: calendarState.focusedDay,
             selectedDayPredicate: (day) => isSameDay(calendarState.selectedDay, day),
-            eventLoader: calendarViewModel.getEventsForDay,
+            eventLoader: (day) {
+              return calendarState.events[DateTime.utc(day.year, day.month, day.day)] ?? [];
+            },
             headerStyle: const HeaderStyle(titleCentered: true, formatButtonVisible: false),
             daysOfWeekHeight: 30,
             calendarStyle: CalendarStyle(
@@ -171,12 +199,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             ),
             onDaySelected: (selectedDay, focusedDay) {
               if (!isSameDay(calendarState.selectedDay, selectedDay)) {
-                calendarViewModel.onDaySelected(selectedDay, focusedDay);
+                ref.read(calendarViewModelProvider.notifier).onDaySelected(selectedDay, focusedDay);
                 final pageIndex = selectedDay.difference(_firstDay).inDays;
                 _pageController.jumpToPage(pageIndex);
               }
             },
-            onPageChanged: calendarViewModel.onPageChanged,
+            onPageChanged: ref.read(calendarViewModelProvider.notifier).onPageChanged,
             calendarFormat: CalendarFormat.month,
             pageAnimationDuration: const Duration(milliseconds: 400),
             pageAnimationCurve: Curves.easeInOut,
@@ -207,7 +235,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               ],
             );
           } else {
-            // 가로 모드에서 달력 부분을 Flexible로 감싸고, SingleChildScrollView를 사용합니다.
             return Row(
               children: [
                 Flexible(
@@ -218,7 +245,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 ),
                 Expanded(
                   flex: 1,
-                  child: pageViewWidget
+                  child: pageViewWidget,
                 ),
               ],
             );

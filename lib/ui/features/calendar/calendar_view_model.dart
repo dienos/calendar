@@ -1,13 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:domain/entities/event.dart';
+import 'package:domain/entities/daily_record.dart';
+import 'package:domain/entities/memo_record.dart';
 import 'package:domain/usecases/add_event_usecase.dart';
 import 'package:domain/usecases/get_events_usecase.dart';
 
 class CalendarState {
   final DateTime selectedDay;
   final DateTime focusedDay;
-  final Map<DateTime, List<Event>> events;
+  final Map<DateTime, List<DailyRecord>> events;
 
   CalendarState({
     required this.selectedDay,
@@ -18,7 +19,7 @@ class CalendarState {
   CalendarState copyWith({
     DateTime? selectedDay,
     DateTime? focusedDay,
-    Map<DateTime, List<Event>>? events,
+    Map<DateTime, List<DailyRecord>>? events,
   }) {
     return CalendarState(
       selectedDay: selectedDay ?? this.selectedDay,
@@ -44,7 +45,7 @@ class CalendarViewModel extends StateNotifier<CalendarState> {
     }
   }
 
-  List<Event> getEventsForDay(DateTime day) {
+  List<DailyRecord> getEventsForDay(DateTime day) {
     final dateOnly = DateTime.utc(day.year, day.month, day.day);
     return state.events[dateOnly] ?? [];
   }
@@ -59,9 +60,10 @@ class CalendarViewModel extends StateNotifier<CalendarState> {
     state = state.copyWith(focusedDay: focusedDay);
   }
 
-  Future<void> addEvent(Event newEvent) async {
+  // 이제 이 메소드는 MemoRecord를 받아 처리합니다.
+  Future<void> addMemo(String text) async {
     final date = state.selectedDay;
-    await _addEvent(date, newEvent);
+    await _addEvent(date, MemoRecord(text));
     await loadEvents();
   }
 }
