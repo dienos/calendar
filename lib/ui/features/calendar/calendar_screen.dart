@@ -4,8 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:domain/entities/daily_record.dart';
 import 'package:domain/entities/daily_log_record.dart';
-import '../add_memo/add_memo_screen.dart';
-import '../memo_list/memo_list_screen.dart';
+import '../../../utils/ui_utils.dart';
+import '../../../utils/date_utils.dart'; // Import the new date utils
+import '../add_daily_log/select_emotion_screen.dart';
+import '../daily_log_list/daily_log_list_screen.dart';
+import '../../common/widgets/calendar_day_cell.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -34,12 +37,19 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     super.dispose();
   }
 
+  String _getEmojiForEmotion(String emotionLabel) {
+    const emotions = SelectEmotionScreen.emotions;
+    final entry = emotions.firstWhere(
+      (e) => e['label'] == emotionLabel,
+      orElse: () => {'emoji': ''},
+    );
+    return entry['emoji']!;
+  }
+
   void _onTodayButtonPressed() {
     final today = DateTime.now();
     final calendarViewModel = ref.read(calendarViewModelProvider.notifier);
-
     calendarViewModel.onDaySelected(today, today);
-
     final pageIndex = today.difference(_firstDay).inDays;
     _pageController.jumpToPage(pageIndex);
   }
@@ -47,37 +57,34 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final calendarState = ref.watch(calendarViewModelProvider);
+    final now = DateTime.now();
 
     final pageViewWidget = PageView.builder(
       controller: _pageController,
       onPageChanged: (index) {
         final newSelectedDay = _firstDay.add(Duration(days: index));
-        if (!isSameDay(calendarState.selectedDay, newSelectedDay)) {
+        if (!newSelectedDay.isSameDayAs(calendarState.selectedDay)) {
           ref.read(calendarViewModelProvider.notifier).onDaySelected(newSelectedDay, newSelectedDay);
         }
       },
       itemBuilder: (context, index) {
         final date = _firstDay.add(Duration(days: index));
         final records = calendarState.events[DateTime.utc(date.year, date.month, date.day)] ?? [];
-
-        final String titleText;
-        final today = DateTime.now();
-
-        final memoRecords = records.whereType<DailyLogRecord>().toList();
+        final dailyLogRecords = records.whereType<DailyLogRecord>().toList();
         final summaryWidgets = <Widget>[];
 
-        if (memoRecords.isNotEmpty) {
+        if (dailyLogRecords.isNotEmpty) {
           summaryWidgets.add(
             ListTile(
               leading: const Icon(Icons.notes),
-              title: Text('${memoRecords.length}개의 메모'),
+              title: Text('${dailyLogRecords.length}개의 기록'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => MemoListScreen(
+                    builder: (context) => DailyLogListScreen(
                       date: date,
-                      memos: memoRecords,
+                      logs: dailyLogRecords,
                     ),
                   ),
                 );
@@ -95,9 +102,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               Expanded(
                 child: records.isEmpty
                     ? const Center(child: Text('작성된 기록이 없습니다.'))
-                    : ListView(
-                        children: summaryWidgets,
-                      ),
+                    : ListView(children: summaryWidgets),
               ),
             ],
           ),
@@ -145,7 +150,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 5.0),
                     child: Text(
-                      '${DateTime.now().day}',
+                      '${now.day}',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontSize: 12,
@@ -159,18 +164,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => AddMemoScreen(
-                selectedDate: calendarState.selectedDay,
-              ),
-            ),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
       body: OrientationBuilder(
         builder: (context, orientation) {
           final calendarWidget = TableCalendar<DailyRecord>(
@@ -178,50 +171,68 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             firstDay: _firstDay,
             lastDay: _lastDay,
             focusedDay: calendarState.focusedDay,
-            selectedDayPredicate: (day) => isSameDay(calendarState.selectedDay, day),
-            eventLoader: (day) {
-              return calendarState.events[DateTime.utc(day.year, day.month, day.day)] ?? [];
-            },
-            headerStyle: const HeaderStyle(titleCentered: true, formatButtonVisible: false),
+            selectedDayPredicate: (day) => day.isSameDayAs(calendarState.selectedDay),
+            eventLoader: ref.read(calendarViewModelProvider.notifier).getEventsForDay,
+            headerStyle: const HeaderStyle(titleCentered: true, formatButtonVisible: false, headerPadding: EdgeInsets.zero),
             daysOfWeekHeight: 30,
-            calendarStyle: CalendarStyle(
-              selectedDecoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                shape: BoxShape.circle,
-              ),
-              selectedTextStyle: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
-              todayDecoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                shape: BoxShape.circle,
-              ),
-              todayTextStyle: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+            rowHeight: 65,
+            calendarStyle: const CalendarStyle(
+              outsideDaysVisible: false,
+              disabledTextStyle: TextStyle(color: Colors.grey),
+              selectedDecoration: BoxDecoration(color: Colors.transparent),
+              todayDecoration: BoxDecoration(color: Colors.transparent),
+              defaultDecoration: BoxDecoration(color: Colors.transparent),
+              weekendDecoration: BoxDecoration(color: Colors.transparent),
             ),
             onDaySelected: (selectedDay, focusedDay) {
-              if (!isSameDay(calendarState.selectedDay, selectedDay)) {
+              if (selectedDay.isAfterDay(now)) {
+                showAppSnackBar(context, '미래의 날짜는 기록할 수 없습니다.');
+                if (!selectedDay.isSameDayAs(calendarState.selectedDay)) {
+                  ref.read(calendarViewModelProvider.notifier).onDaySelected(selectedDay, focusedDay);
+                }
+                return;
+              }
+
+              if (!selectedDay.isSameDayAs(calendarState.selectedDay)) {
                 ref.read(calendarViewModelProvider.notifier).onDaySelected(selectedDay, focusedDay);
                 final pageIndex = selectedDay.difference(_firstDay).inDays;
                 _pageController.jumpToPage(pageIndex);
               }
+
+              final events = ref.read(calendarViewModelProvider.notifier).getEventsForDay(selectedDay);
+              if (events.isEmpty) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => SelectEmotionScreen(selectedDate: selectedDay)),
+                );
+              } else {
+                final dailyLogs = events.whereType<DailyLogRecord>().toList();
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => DailyLogListScreen(date: selectedDay, logs: dailyLogs)),
+                );
+              }
             },
             onPageChanged: ref.read(calendarViewModelProvider.notifier).onPageChanged,
             calendarFormat: CalendarFormat.month,
-            pageAnimationDuration: const Duration(milliseconds: 400),
-            pageAnimationCurve: Curves.easeInOut,
             calendarBuilders: CalendarBuilders(
-              markerBuilder: (context, date, events) {
-                if (events.isNotEmpty) {
-                  return Positioned(
-                    right: 1, bottom: 1,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      width: 6.0, height: 6.0,
-                    ),
-                  );
+              prioritizedBuilder: (context, day, focusedDay) {
+                final dailyLog = ref.read(calendarViewModelProvider.notifier).getEventsForDay(day).whereType<DailyLogRecord>().firstOrNull;
+                final emoji = dailyLog != null ? _getEmojiForEmotion(dailyLog.emotion) : null;
+                final isFuture = day.isAfterDay(now);
+
+                Widget circleContent;
+                if (emoji != null) {
+                  circleContent = Text(emoji, style: const TextStyle(fontSize: 24));
+                } else {
+                  circleContent = Icon(Icons.add, color: isFuture ? Colors.grey.shade300 : Colors.grey, size: 24);
                 }
-                return null;
+
+                return CalendarDayCell(
+                  dayNumber: day.day,
+                  circleContent: circleContent,
+                  isSelected: day.isSameDayAs(calendarState.selectedDay),
+                  isToday: day.isSameDayAs(now),
+                  isFuture: isFuture,
+                );
               },
             ),
           );
@@ -236,16 +247,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           } else {
             return Row(
               children: [
-                Flexible(
-                  flex: 1,
-                  child: SingleChildScrollView(
-                    child: calendarWidget,
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: pageViewWidget,
-                ),
+                Flexible(flex: 1, child: SingleChildScrollView(child: calendarWidget)),
+                Expanded(flex: 1, child: pageViewWidget),
               ],
             );
           }
