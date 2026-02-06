@@ -2,14 +2,13 @@ import 'package:data/datasources/local/app_database.dart';
 import 'package:data/repositories/calendar_repository_impl.dart';
 import 'package:domain/repositories/calendar_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:domain/entities/memo_record.dart';
+import 'package:domain/entities/daily_log_record.dart';
 import 'package:domain/usecases/add_event_usecase.dart';
 import 'package:domain/usecases/get_events_usecase.dart';
 import 'ui/features/calendar/calendar_view_model.dart';
 
 // --- Composition Root ---
 
-// 0. 로컬 데이터베이스 인스턴스를 제공하는 Provider
 final appDatabaseProvider = FutureProvider<AppDatabase>((ref) async {
   return await $FloorAppDatabase.databaseBuilder('app_database.db').build();
 });

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:domain/entities/daily_record.dart';
-import 'package:domain/entities/memo_record.dart';
+import 'package:domain/entities/daily_log_record.dart';
 import '../add_memo/add_memo_screen.dart';
 import '../memo_list/memo_list_screen.dart';
 
@@ -63,7 +63,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         final String titleText;
         final today = DateTime.now();
 
-        final memoRecords = records.whereType<MemoRecord>().toList();
+        final memoRecords = records.whereType<DailyLogRecord>().toList();
         final summaryWidgets = <Widget>[];
 
         if (memoRecords.isNotEmpty) {
@@ -73,7 +73,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               title: Text('${memoRecords.length}개의 메모'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
-                // 2. onTap 콜백에서 MemoListScreen으로 이동합니다.
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => MemoListScreen(

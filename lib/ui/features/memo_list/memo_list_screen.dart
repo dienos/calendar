@@ -1,9 +1,9 @@
-import 'package:domain/entities/memo_record.dart';
+import 'package:domain/entities/daily_log_record.dart';
 import 'package:flutter/material.dart';
 
 class MemoListScreen extends StatelessWidget {
   final DateTime date;
-  final List<MemoRecord> memos;
+  final List<DailyLogRecord> memos;
 
   const MemoListScreen({super.key, required this.date, required this.memos});
 
@@ -23,9 +23,8 @@ class MemoListScreen extends StatelessWidget {
             key: ValueKey(memo),
             direction: DismissDirection.endToStart,
             onDismissed: (direction) {
-              // TODO: ViewModel에 삭제 로직을 연결해야 합니다.
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${memo.text}' '메모가 삭제되었습니다.')),
+                SnackBar(content: Text('${memo.memo}' '메모가 삭제되었습니다.')),
               );
             },
             background: Container(
@@ -46,7 +45,7 @@ class MemoListScreen extends StatelessWidget {
               margin: EdgeInsets.zero,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text(memo.text, style: const TextStyle(fontSize: 16, height: 1.5)),
+                child: Text(memo.memo, style: const TextStyle(fontSize: 16, height: 1.5)),
               ),
             ),
           );

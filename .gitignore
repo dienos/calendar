@@ -9,29 +9,38 @@
 .buildlog/
 .history
 .svn/
-*.iml
 
 # Packages
 .packages
 .flutter-plugins
 .flutter-plugins-dependencies
 
-# Flutter
+# Flutter build outputs
 .pub-cache/
 .dart_tool/
 build/
 
-# IDEs
+# Generated files
+*.g.dart
+*.freezed.dart
+
+# IDE specific files
 .idea/
 .vscode/
+*.iml
 
-# Android
+# Android specific
 android/key.properties
 android/local.properties
+*.keystore
 
-# iOS
+# iOS specific
 ios/Pods/
-ios/Flutter/App.framework
-ios/Flutter/engine
-ios/Flutter/Generated.xcconfig
-ios/Runner/GeneratedPluginRegistrant.*
+ios/.symlinks/
+ios/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+ios/Runner.xcworkspace/xcuserdata/
+
+# Others
+.metadata
+flutter_build.yaml
+documentation/

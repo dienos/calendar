@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:domain/entities/daily_record.dart';
-import 'package:domain/entities/memo_record.dart';
+import 'package:domain/entities/daily_log_record.dart';
 import 'package:domain/usecases/add_event_usecase.dart';
 import 'package:domain/usecases/get_events_usecase.dart';
 
@@ -60,8 +60,8 @@ class CalendarViewModel extends StateNotifier<CalendarState> {
     state = state.copyWith(focusedDay: focusedDay);
   }
 
-  Future<void> addMemo(DateTime date, String text) async {
-    await _addEvent(date, MemoRecord(text));
+  Future<void> addDailyLog(DateTime date, String emotion, String dailyLog) async {
+    await _addEvent(date, DailyLogRecord(emotion, dailyLog));
     await loadEvents();
   }
 }

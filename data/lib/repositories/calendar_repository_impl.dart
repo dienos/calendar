@@ -1,7 +1,7 @@
 import 'package:data/datasources/local/app_database.dart';
-import 'package:data/datasources/local/entity/memo_entity.dart';
+import 'package:data/datasources/local/entity/daily_log_entity.dart';
 import 'package:domain/entities/daily_record.dart';
-import 'package:domain/entities/memo_record.dart';
+import 'package:domain/entities/daily_log_record.dart';
 import 'package:domain/repositories/calendar_repository.dart';
 
 class CalendarRepositoryImpl implements CalendarRepository {
@@ -13,18 +13,17 @@ class CalendarRepositoryImpl implements CalendarRepository {
   Future<Map<DateTime, List<DailyRecord>>> getEvents() async {
     if (_database == null) return {};
 
-    await Future.delayed(Duration.zero);
-    final allMemos = await _database.memoDao.findAllMemos();
+    final allDailyLogs = await _database.dailyLogDao.findAllDailyLogs();
     final Map<DateTime, List<DailyRecord>> events = {};
 
-    for (var memoEntity in allMemos) {
-      final date = DateTime.utc(memoEntity.date.year, memoEntity.date.month, memoEntity.date.day);
-      final memoRecord = MemoRecord(memoEntity.memoText);
+    for (var dailyLogEntity in allDailyLogs) {
+      final date = DateTime.utc(dailyLogEntity.date.year, dailyLogEntity.date.month, dailyLogEntity.date.day);
+      final dailyLogRecord = DailyLogRecord(dailyLogEntity.emotion, dailyLogEntity.memo);
 
       if (events[date] == null) {
         events[date] = [];
       }
-      events[date]!.add(memoRecord);
+      events[date]!.add(dailyLogRecord);
     }
     return Map.of(events);
   }
@@ -35,14 +34,13 @@ class CalendarRepositoryImpl implements CalendarRepository {
       return;
     }
 
-    await Future.delayed(Duration.zero);
-
-    if (newRecord is MemoRecord) {
-      final memoEntity = MemoEntity(
-        memoText: newRecord.text, // text -> memoText
+    if (newRecord is DailyLogRecord) {
+      final dailyLogEntity = DailyLogEntity(
+        emotion: newRecord.emotion,
+        memo: newRecord.memo,
         date: date,
       );
-      await _database.memoDao.insertMemo(memoEntity);
+      await _database.dailyLogDao.insertDailyLog(dailyLogEntity);
     }
   }
 }

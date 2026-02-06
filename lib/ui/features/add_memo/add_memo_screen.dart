@@ -29,15 +29,17 @@ class _AddMemoScreenState extends ConsumerState<AddMemoScreen> {
   Future<void> _onSave() async {
     final text = _memoController.text;
     if (text.isNotEmpty) {
-      await ref.read(calendarViewModelProvider.notifier).addMemo(widget.selectedDate, text);
+      await ref
+          .read(calendarViewModelProvider.notifier)
+          .addDailyLog(widget.selectedDate, text, "");
 
       if (mounted) {
         Navigator.of(context).pop();
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('메모를 입력해주세요.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('메모를 입력해주세요.')));
     }
   }
 
@@ -45,11 +47,16 @@ class _AddMemoScreenState extends ConsumerState<AddMemoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.selectedDate.month}월 ${widget.selectedDate.day}일 기록'),
+        title: Text(
+          '${widget.selectedDate.month}월 ${widget.selectedDate.day}일 기록',
+        ),
         actions: [
           TextButton(
             onPressed: _onSave,
-            child: Text('저장', style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+            child: Text(
+              '저장',
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
           ),
         ],
       ),
@@ -77,7 +84,10 @@ class _AddMemoScreenState extends ConsumerState<AddMemoScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('메모', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text(
+              '메모',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             const SizedBox(height: 8),
             TextField(
               controller: _memoController,
@@ -98,14 +108,17 @@ class _AddMemoScreenState extends ConsumerState<AddMemoScreen> {
       elevation: 2.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 8.0,
+          horizontal: 16.0,
+        ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         trailing: IconButton(
           icon: const Icon(Icons.add_circle_outline),
           onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('$title 추가 기능은 준비 중입니다.')),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('$title 추가 기능은 준비 중입니다.')));
           },
         ),
       ),
