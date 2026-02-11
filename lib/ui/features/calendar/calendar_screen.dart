@@ -1,259 +1,333 @@
-import 'package:dienos_calendar/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:domain/entities/daily_record.dart';
+import 'package:dienos_calendar/providers.dart';
+import 'package:dienos_calendar/utils/date_utils.dart';
 import 'package:domain/entities/daily_log_record.dart';
-import '../../../utils/ui_utils.dart';
-import '../../../utils/date_utils.dart'; // Import the new date utils
 import '../add_daily_log/select_emotion_screen.dart';
-import '../daily_log_list/daily_log_list_screen.dart';
-import '../../common/widgets/calendar_day_cell.dart';
 
-class CalendarScreen extends ConsumerStatefulWidget {
+class CalendarScreen extends ConsumerWidget {
   const CalendarScreen({super.key});
 
   @override
-  ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
-}
-
-class _CalendarScreenState extends ConsumerState<CalendarScreen> {
-  late PageController _pageController;
-
-  final DateTime _firstDay = DateTime.utc(2020, 1, 1);
-  final DateTime _lastDay = DateTime.utc(2030, 12, 31);
-
-  @override
-  void initState() {
-    super.initState();
-    final today = DateTime.now();
-    final initialPage = today.difference(_firstDay).inDays;
-    _pageController = PageController(initialPage: initialPage);
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  String _getEmojiForEmotion(String emotionLabel) {
-    const emotions = SelectEmotionScreen.emotions;
-    final entry = emotions.firstWhere(
-      (e) => e['label'] == emotionLabel,
-      orElse: () => {'emoji': ''},
-    );
-    return entry['emoji']!;
-  }
-
-  void _onTodayButtonPressed() {
-    final today = DateTime.now();
-    final calendarViewModel = ref.read(calendarViewModelProvider.notifier);
-    calendarViewModel.onDaySelected(today, today);
-    final pageIndex = today.difference(_firstDay).inDays;
-    _pageController.jumpToPage(pageIndex);
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final calendarState = ref.watch(calendarViewModelProvider);
-    final now = DateTime.now();
+    final calendarViewModel = ref.read(calendarViewModelProvider.notifier);
+    final theme = Theme.of(context);
 
-    final pageViewWidget = PageView.builder(
-      controller: _pageController,
-      onPageChanged: (index) {
-        final newSelectedDay = _firstDay.add(Duration(days: index));
-        if (!newSelectedDay.isSameDayAs(calendarState.selectedDay)) {
-          ref.read(calendarViewModelProvider.notifier).onDaySelected(newSelectedDay, newSelectedDay);
-        }
-      },
-      itemBuilder: (context, index) {
-        final date = _firstDay.add(Duration(days: index));
-        final records = calendarState.events[DateTime.utc(date.year, date.month, date.day)] ?? [];
-        final dailyLogRecords = records.whereType<DailyLogRecord>().toList();
-        final summaryWidgets = <Widget>[];
+    String? getPrimaryEmojiForDay(DateTime day) {
+      final events = calendarViewModel.getEventsForDay(day);
+      final firstLog = events.whereType<DailyLogRecord>().firstOrNull;
+      if (firstLog != null) {
+        const emotions = SelectEmotionScreen.emotions;
+        final entry = emotions.firstWhere(
+          (e) => e['label'] == firstLog.emotion,
+          orElse: () => {'emoji': ''},
+        );
+        return entry['emoji'];
+      }
+      return null;
+    }
 
-        if (dailyLogRecords.isNotEmpty) {
-          summaryWidgets.add(
-            ListTile(
-              leading: const Icon(Icons.notes),
-              title: Text('${dailyLogRecords.length}개의 기록'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => DailyLogListScreen(
-                      date: date,
-                      logs: dailyLogRecords,
+    return Scaffold(
+      backgroundColor: theme.colorScheme.background,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              _CalendarHeader(),
+              const SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  color: theme.cardTheme.color,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
+                child: TableCalendar<DailyLogRecord>(
+                  daysOfWeekHeight: 20,
+                  locale: 'ko_KR',
+                  firstDay: DateTime.utc(2020, 1, 1),
+                  lastDay: DateTime.utc(2030, 12, 31),
+                  focusedDay: calendarState.focusedDay,
+                  selectedDayPredicate: (day) =>
+                      day.isSameDayAs(calendarState.selectedDay),
+                  headerVisible: false,
+                  daysOfWeekVisible: true,
+                  calendarFormat: CalendarFormat.month,
+                  eventLoader: (day) => calendarViewModel
+                      .getEventsForDay(day)
+                      .whereType<DailyLogRecord>()
+                      .toList(),
+                  onDaySelected: (selectedDay, focusedDay) {
+                    calendarViewModel.onDaySelected(selectedDay, focusedDay);
+
+                     Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            SelectEmotionScreen(selectedDate: selectedDay),
+                      ),
+                    );
+                  },
+                  onPageChanged: (focusedDay) {
+                    calendarViewModel.onPageChanged(focusedDay);
+                  },
+                  daysOfWeekStyle: DaysOfWeekStyle(
+                    weekdayStyle: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.5)),
+                    weekendStyle: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.5)),
+                  ),
+                  calendarStyle: CalendarStyle(
+                    todayDecoration: BoxDecoration(
+                      color: theme.colorScheme.secondary.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    selectedDecoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                );
-              },
-            ),
-          );
-        }
+                  calendarBuilders: CalendarBuilders(
+                    defaultBuilder: (context, day, focusedDay) {
+                      final emoji = getPrimaryEmojiForDay(day);
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('${day.day}', style: theme.textTheme.bodyMedium),
+                            if (emoji != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2.0),
+                                child: Text(emoji, style: const TextStyle(fontSize: 18)),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                    todayBuilder: (context, day, focusedDay) {
+                      final emoji = getPrimaryEmojiForDay(day);
+                      return Container(
+                        margin: const EdgeInsets.all(4.0),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.secondary.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('${day.day}',
+                                  style: theme.textTheme.bodyMedium!
+                                      .copyWith(color: theme.colorScheme.primary)),
+                              if (emoji != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2.0),
+                                  child: Text(emoji, style: const TextStyle(fontSize: 18)),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    selectedBuilder: (context, day, focusedDay) {
+                      final emoji = getPrimaryEmojiForDay(day);
+                      return Container(
+                        margin: const EdgeInsets.all(4.0),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withOpacity(0.8),
+                           borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('${day.day}',
+                                  style: theme.textTheme.bodyMedium!
+                                      .copyWith(color: theme.colorScheme.onPrimary)),
+                              if (emoji != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2.0),
+                                  child: Text(emoji, style: const TextStyle(fontSize: 18)),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    outsideBuilder: (context, day, focusedDay) {
+                      return Center(
+                        child: Text(
+                          '${day.day}',
+                          style: TextStyle(color: Colors.grey.withOpacity(0.5)),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.touch_app_outlined, color: theme.colorScheme.primary, size: 16),
+                  const SizedBox(width: 8),
+                  Text('날짜를 탭하여 기분을 기록하세요',
+                      style: theme.textTheme.bodySmall!
+                          .copyWith(color: theme.colorScheme.primary)),
+                ],
+              ),
+              const SizedBox(height: 24),
+              const _TodaysHighlight(),
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: '캘린더'),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: '통계'),
+          BottomNavigationBarItem(icon: Icon(Icons.book), label: '일기'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: '설정'),
+        ],
+        currentIndex: 0, 
+        onTap: (index) {},
+      ),
+    );
+  }
+}
 
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+class _CalendarHeader extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final calendarState = ref.watch(calendarViewModelProvider);
+    final calendarViewModel = ref.read(calendarViewModelProvider.notifier);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              DateFormat.MMMM('ko_KR').format(calendarState.focusedDay),
+              style: theme.textTheme.headlineLarge!.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.onBackground),
+            ),
+            Text(
+              DateFormat.y('ko_KR').format(calendarState.focusedDay),
+              style: theme.textTheme.titleMedium!.copyWith(color: theme.colorScheme.primary),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12)
+              ),
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                icon: Icon(Icons.chevron_left, color: theme.colorScheme.primary),
+                onPressed: () {
+                   final newFocusedDay =
+                      DateTime(calendarState.focusedDay.year, calendarState.focusedDay.month - 1);
+                    calendarViewModel.onPageChanged(newFocusedDay);
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12)
+              ),
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                icon: Icon(Icons.chevron_right, color: theme.colorScheme.primary),
+                onPressed: () {
+                  final newFocusedDay =
+                      DateTime(calendarState.focusedDay.year, calendarState.focusedDay.month + 1);
+                    calendarViewModel.onPageChanged(newFocusedDay);
+                },
+              ),
+            ),
+          ],
+        )
+      ],
+    );
+  }
+}
+
+class _TodaysHighlight extends ConsumerWidget {
+  const _TodaysHighlight();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedDate = ref.watch(calendarViewModelProvider.select((state) => state.selectedDay));
+    final eventsMap = ref.watch(calendarViewModelProvider.select((state) => state.events));
+    final eventsForDay = eventsMap[DateTime.utc(selectedDate.year, selectedDate.month, selectedDate.day)] ?? [];
+    final firstLog = eventsForDay.whereType<DailyLogRecord>().firstOrNull;
+    final theme = Theme.of(context);
+
+    if (firstLog == null || firstLog.memo.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    String? emoji = '✨';
+    const emotions = SelectEmotionScreen.emotions;
+    final entry = emotions.firstWhere(
+          (e) => e['label'] == firstLog.emotion,
+      orElse: () => {'emoji': '✨'},
+    );
+    emoji = entry['emoji'];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("오늘의 하이라이트", style: theme.textTheme.labelMedium!.copyWith(color: Colors.grey)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(20.0),
+          decoration: BoxDecoration(
+            color: theme.cardTheme.color,
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Row(
             children: [
-              const SizedBox(height: 8.0),
+              Container(
+                padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Text(emoji ?? '', style: const TextStyle(fontSize: 32)),
+              ),
+              const SizedBox(width: 16),
               Expanded(
-                child: records.isEmpty
-                    ? const Center(child: Text('작성된 기록이 없습니다.'))
-                    : ListView(children: summaryWidgets),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      DateFormat.yMMMMd('ko_KR').format(selectedDate),
+                      style: theme.textTheme.labelMedium!.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text('"${firstLog.memo}"', style: theme.textTheme.bodyLarge, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
               ),
             ],
           ),
-        );
-      },
-      itemCount: _lastDay.difference(_firstDay).inDays + 1,
-    );
-
-    return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary),
-              child: const Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
-            ),
-            const ListTile(leading: Icon(Icons.settings), title: Text('Settings')),
-            const ListTile(leading: Icon(Icons.info_outline), title: Text('About')),
-          ],
         ),
-      ),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: IconButton(
-              onPressed: _onTodayButtonPressed,
-              icon: Stack(
-                alignment: Alignment.center,
-                children: [
-                  const Icon(
-                    Icons.calendar_today_outlined,
-                    color: Colors.black,
-                    size: 30,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 5.0),
-                    child: Text(
-                      '${now.day}',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: OrientationBuilder(
-        builder: (context, orientation) {
-          final calendarWidget = TableCalendar<DailyRecord>(
-            locale: 'ko_KR',
-            firstDay: _firstDay,
-            lastDay: _lastDay,
-            focusedDay: calendarState.focusedDay,
-            selectedDayPredicate: (day) => day.isSameDayAs(calendarState.selectedDay),
-            eventLoader: ref.read(calendarViewModelProvider.notifier).getEventsForDay,
-            headerStyle: const HeaderStyle(titleCentered: true, formatButtonVisible: false, headerPadding: EdgeInsets.zero),
-            daysOfWeekHeight: 30,
-            rowHeight: 65,
-            calendarStyle: const CalendarStyle(
-              outsideDaysVisible: false,
-              disabledTextStyle: TextStyle(color: Colors.grey),
-              selectedDecoration: BoxDecoration(color: Colors.transparent),
-              todayDecoration: BoxDecoration(color: Colors.transparent),
-              defaultDecoration: BoxDecoration(color: Colors.transparent),
-              weekendDecoration: BoxDecoration(color: Colors.transparent),
-            ),
-            onDaySelected: (selectedDay, focusedDay) {
-              if (selectedDay.isAfterDay(now)) {
-                showAppSnackBar(context, '미래의 날짜는 기록할 수 없습니다.');
-                if (!selectedDay.isSameDayAs(calendarState.selectedDay)) {
-                  ref.read(calendarViewModelProvider.notifier).onDaySelected(selectedDay, focusedDay);
-                }
-                return;
-              }
-
-              if (!selectedDay.isSameDayAs(calendarState.selectedDay)) {
-                ref.read(calendarViewModelProvider.notifier).onDaySelected(selectedDay, focusedDay);
-                final pageIndex = selectedDay.difference(_firstDay).inDays;
-                _pageController.jumpToPage(pageIndex);
-              }
-
-              final events = ref.read(calendarViewModelProvider.notifier).getEventsForDay(selectedDay);
-              if (events.isEmpty) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => SelectEmotionScreen(selectedDate: selectedDay)),
-                );
-              } else {
-                final dailyLogs = events.whereType<DailyLogRecord>().toList();
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => DailyLogListScreen(date: selectedDay, logs: dailyLogs)),
-                );
-              }
-            },
-            onPageChanged: ref.read(calendarViewModelProvider.notifier).onPageChanged,
-            calendarFormat: CalendarFormat.month,
-            calendarBuilders: CalendarBuilders(
-              prioritizedBuilder: (context, day, focusedDay) {
-                final dailyLog = ref.read(calendarViewModelProvider.notifier).getEventsForDay(day).whereType<DailyLogRecord>().firstOrNull;
-                final emoji = dailyLog != null ? _getEmojiForEmotion(dailyLog.emotion) : null;
-                final isFuture = day.isAfterDay(now);
-
-                Widget circleContent;
-                if (emoji != null) {
-                  circleContent = Text(emoji, style: const TextStyle(fontSize: 24));
-                } else {
-                  circleContent = Icon(Icons.add, color: isFuture ? Colors.grey.shade300 : Colors.grey, size: 24);
-                }
-
-                return CalendarDayCell(
-                  dayNumber: day.day,
-                  circleContent: circleContent,
-                  isSelected: day.isSameDayAs(calendarState.selectedDay),
-                  isToday: day.isSameDayAs(now),
-                  isFuture: isFuture,
-                );
-              },
-            ),
-          );
-
-          if (orientation == Orientation.portrait) {
-            return Column(
-              children: [
-                calendarWidget,
-                Expanded(child: pageViewWidget),
-              ],
-            );
-          } else {
-            return Row(
-              children: [
-                Flexible(flex: 1, child: SingleChildScrollView(child: calendarWidget)),
-                Expanded(flex: 1, child: pageViewWidget),
-              ],
-            );
-          }
-        },
-      ),
+      ],
     );
   }
 }

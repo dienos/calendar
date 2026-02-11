@@ -19,7 +19,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Dienos Calendar',
-      theme: AppTheme.darkTheme, // Use the theme from the separate file
+      theme: AppTheme.theme, // Use the light theme
+      darkTheme: AppTheme.darkTheme, // Provide the dark theme
+      themeMode: ThemeMode.light, // Explicitly use the light theme
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
