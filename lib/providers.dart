@@ -10,7 +10,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:domain/entities/daily_log_record.dart';
 import 'package:domain/usecases/add_event_usecase.dart';
 import 'package:domain/usecases/get_events_usecase.dart';
-import 'package:dienos_calendar/ui/features/daily_log_detail/daily_log_detail_view_model.dart';
 import 'ui/features/add_daily_log/add_daily_log_screen_view_model.dart';
 import 'ui/features/calendar/calendar_view_model.dart';
 
@@ -33,9 +32,12 @@ final calendarRepositoryProvider = Provider<CalendarRepository>((ref) {
 
 final dailyLogRepositoryProvider = Provider<DailyLogRepository>((ref) {
   final database = ref.watch(appDatabaseProvider);
-  // We assume the database is available here, otherwise it will throw.
-  // A more robust solution might handle the loading/error state.
-  return DailyLogRepositoryImpl(database.value!);
+  
+  return database.when(
+    data: (db) => DailyLogRepositoryImpl(db),
+    loading: () => DailyLogRepositoryImpl(null),
+    error: (err, stack) => DailyLogRepositoryImpl(null),
+  );
 });
 
 // 2. Repository -> UseCases
@@ -59,7 +61,7 @@ final getDailyLogDetailUseCaseProvider = Provider<GetDailyLogDetailUseCase>((ref
   return GetDailyLogDetailUseCase(repository);
 });
 
-// 3. UseCases -> ViewModel
+// 3. UseCases -> ViewModel / Screen Data
 final calendarViewModelProvider =
     StateNotifierProvider<CalendarViewModel, CalendarState>((ref) {
   final getEvents = ref.watch(getEventsUseCaseProvider);
@@ -87,11 +89,13 @@ final monthlyStatsProvider = StateNotifierProvider.autoDispose
   return MonthlyStatsViewModel(month, getMonthlyStatsUseCase);
 });
 
-final dailyLogDetailProvider = StateNotifierProvider.autoDispose
-    .family<DailyLogDetailViewModel, DailyLogDetailState, DateTime>((ref, date) {
-  final getDailyLogDetailUseCase = ref.watch(getDailyLogDetailUseCaseProvider);
-  return DailyLogDetailViewModel(getDailyLogDetailUseCase, date);
+// New, simplified provider for the detail screen
+final dailyLogDetailProvider = FutureProvider.autoDispose
+    .family<DailyLogRecord?, DateTime>((ref, date) async {
+  final useCase = ref.watch(getDailyLogDetailUseCaseProvider);
+  return useCase(date);
 });
+
 
 class MonthlyStatsViewModel extends StateNotifier<MonthlyStats> {
   final DateTime _month;

@@ -6,6 +6,6 @@ abstract class ImageDao {
   @insert
   Future<void> insertImage(ImageEntity image);
 
-  @Query('SELECT * FROM images WHERE daily_log_id = :dailyLogId')
+  @Query('SELECT * FROM ImageEntity WHERE daily_log_id = :dailyLogId')
   Future<List<ImageEntity>> findImagesByDailyLogId(int dailyLogId);
 }

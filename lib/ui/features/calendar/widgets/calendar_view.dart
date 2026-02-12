@@ -1,14 +1,15 @@
 import 'package:dienos_calendar/providers.dart';
 import 'package:dienos_calendar/ui/features/add_daily_log/add_daily_log_screen_view_model.dart';
-import 'package:dienos_calendar/ui/features/add_daily_log/select_emotion_screen.dart';
 import 'package:dienos_calendar/ui/features/daily_log_detail/daily_log_detail_screen.dart';
 import 'package:dienos_calendar/utils/date_utils.dart';
+import 'package:dienos_calendar/utils/ui_utils.dart';
 import 'package:domain/entities/daily_log_record.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:table_calendar/table_calendar.dart';
+
+import '../../add_daily_log/add_daily_log_screen.dart';
 
 class CalendarView extends ConsumerWidget {
   const CalendarView({super.key});
@@ -67,8 +68,15 @@ class CalendarView extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.cardTheme.color,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 5),
+          )
+        ],
       ),
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
       child: TableCalendar(
@@ -85,10 +93,17 @@ class CalendarView extends ConsumerWidget {
         daysOfWeekVisible: true,
         calendarFormat: CalendarFormat.month,
         onDaySelected: (selectedDay, focusedDay) {
+          final today = DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+
+          if (selectedDay.isAfter(today)) {
+            showAppSnackBar(context, "이날은 오리라...");
+            return;
+          }
+
           calendarViewModel.onDaySelected(selectedDay, focusedDay);
-          
+
           final events = calendarViewModel.getEventsForDay(selectedDay);
-          
+
           if (events.isNotEmpty) {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -119,8 +134,7 @@ class CalendarView extends ConsumerWidget {
           weekendDecoration: BoxDecoration(color: Colors.transparent),
         ),
         calendarBuilders: CalendarBuilders(
-          defaultBuilder: (context, day, focusedDay) =>
-              buildCalendarDay(day),
+          defaultBuilder: (context, day, focusedDay) => buildCalendarDay(day),
           todayBuilder: (context, day, focusedDay) {
             return buildCalendarDay(
               day,
