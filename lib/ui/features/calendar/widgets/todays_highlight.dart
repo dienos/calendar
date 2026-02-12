@@ -1,9 +1,10 @@
 import 'package:dienos_calendar/providers.dart';
-import 'package:dienos_calendar/ui/features/add_daily_log/select_emotion_screen.dart';
 import 'package:domain/entities/daily_log_record.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+
+import '../../add_daily_log/add_daily_log_screen_view_model.dart' as SelectEmotionScreen;
 
 class TodaysHighlight extends ConsumerWidget {
   const TodaysHighlight({super.key});
