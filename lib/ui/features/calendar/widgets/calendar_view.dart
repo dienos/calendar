@@ -1,6 +1,7 @@
 import 'package:dienos_calendar/providers.dart';
 import 'package:dienos_calendar/ui/features/add_daily_log/add_daily_log_screen_view_model.dart';
 import 'package:dienos_calendar/ui/features/add_daily_log/select_emotion_screen.dart';
+import 'package:dienos_calendar/ui/features/daily_log_detail/daily_log_detail_screen.dart';
 import 'package:dienos_calendar/utils/date_utils.dart';
 import 'package:domain/entities/daily_log_record.dart';
 import 'package:flutter/material.dart';
@@ -85,13 +86,22 @@ class CalendarView extends ConsumerWidget {
         calendarFormat: CalendarFormat.month,
         onDaySelected: (selectedDay, focusedDay) {
           calendarViewModel.onDaySelected(selectedDay, focusedDay);
-
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) =>
-                  AddDailyLogScreen(selectedDate: selectedDay),
-            ),
-          );
+          
+          final events = calendarViewModel.getEventsForDay(selectedDay);
+          
+          if (events.isNotEmpty) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => DailyLogDetailScreen(date: selectedDay),
+              ),
+            );
+          } else {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => AddDailyLogScreen(selectedDate: selectedDay),
+              ),
+            );
+          }
         },
         onPageChanged: (focusedDay) {
           calendarViewModel.onPageChanged(focusedDay);

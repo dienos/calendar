@@ -13,7 +13,7 @@ class CalendarRepositoryImpl implements CalendarRepository {
   Future<Map<DateTime, List<DailyRecord>>> getEvents() async {
     if (_database == null) return {};
 
-    final allDailyLogs = await _database.dailyLogDao.findAllDailyLogs();
+    final allDailyLogs = await _database!.dailyLogDao.findAllDailyLogs();
     final Map<DateTime, List<DailyRecord>> events = {};
 
     for (var dailyLogEntity in allDailyLogs) {
@@ -40,7 +40,23 @@ class CalendarRepositoryImpl implements CalendarRepository {
         memo: newRecord.memo,
         date: date,
       );
-      await _database.dailyLogDao.insertDailyLog(dailyLogEntity);
+      // Note: This part needs modification to save images as well.
+      // For now, it only saves the log itself.
+      await _database!.dailyLogDao.insertDailyLog(dailyLogEntity);
     }
+  }
+
+  @override
+  Future<int> countMemoEntriesForMonth(String yearMonth) async {
+    if (_database == null) return 0;
+    final count = await _database!.dailyLogDao.countMemoEntriesForMonth(yearMonth);
+    return count ?? 0;
+  }
+
+  @override
+  Future<int> countMoodEntriesForMonth(String yearMonth) async {
+    if (_database == null) return 0;
+    final count = await _database!.dailyLogDao.countMoodEntriesForMonth(yearMonth);
+    return count ?? 0;
   }
 }

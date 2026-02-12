@@ -1,8 +1,9 @@
-import './daily_record.dart';
+import 'package:domain/entities/daily_record.dart';
 
 class DailyLogRecord extends DailyRecord {
   final String emotion;
   final String memo;
+  final List<String> images;
 
-  DailyLogRecord(this.emotion, this.memo);
+  DailyLogRecord(this.emotion, this.memo, {this.images = const []});
 }

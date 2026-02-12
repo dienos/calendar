@@ -1,5 +1,6 @@
 import 'package:floor/floor.dart';
 import '../entity/daily_log_entity.dart';
+import '../entity/image_entity.dart';
 
 @dao
 abstract class DailyLogDao {
@@ -11,4 +12,20 @@ abstract class DailyLogDao {
 
   @insert
   Future<void> insertDailyLog(DailyLogEntity dailyLog);
+
+  // --- Methods for Monthly Highlights ---
+
+  @Query("SELECT COUNT(*) FROM DailyLogEntity WHERE strftime('%Y-%m', date / 1000, 'unixepoch') = :yearMonth AND emotion != ''")
+  Future<int?> countMoodEntriesForMonth(String yearMonth);
+
+  @Query("SELECT COUNT(*) FROM DailyLogEntity WHERE strftime('%Y-%m', date / 1000, 'unixepoch') = :yearMonth AND memo != ''")
+  Future<int?> countMemoEntriesForMonth(String yearMonth);
+
+  // --- Methods for Detail Screen (New Approach) ---
+
+  @Query('SELECT * FROM DailyLogEntity WHERE date = :date LIMIT 1')
+  Future<DailyLogEntity?> findDailyLogByDate(DateTime date);
+
+  @Query('SELECT * FROM images WHERE daily_log_id = :logId')
+  Future<List<ImageEntity>> findImagesByLogId(int logId);
 }
