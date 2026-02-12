@@ -1,6 +1,8 @@
 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="50" cy="50" r="45" fill="none" stroke="#D1D1D1" stroke-width="3" stroke-dasharray="5,5"/>
-    <circle cx="35" cy="45" r="3" fill="#D1D1D1"/>
-    <circle cx="65" cy="45" r="3" fill="#D1D1D1"/>
-    <path d="M40 65 Q50 72 60 65" stroke="#D1D1D1" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- 테두리 두께를 3에서 5로 키우고 색상을 더 진하게 변경 -->
+    <circle cx="50" cy="50" r="45" fill="none" stroke="#A0A0A0" stroke-width="5" stroke-dasharray="6,4"/>
+    <!-- 눈과 미소도 더 명확하게 조정 -->
+    <circle cx="35" cy="45" r="4" fill="#A0A0A0"/>
+    <circle cx="65" cy="45" r="4" fill="#A0A0A0"/>
+    <path d="M40 65 Q50 75 60 65" stroke="#A0A0A0" stroke-width="4" fill="none" stroke-linecap="round"/>
 </svg>

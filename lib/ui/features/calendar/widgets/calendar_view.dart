@@ -4,6 +4,7 @@ import 'package:dienos_calendar/ui/features/add_daily_log/select_emotion_screen.
 import 'package:dienos_calendar/utils/date_utils.dart';
 import 'package:domain/entities/daily_log_record.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -69,7 +70,7 @@ class CalendarView extends ConsumerWidget {
         borderRadius: BorderRadius.circular(30),
       ),
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-      child: TableCalendar<DailyLogRecord>(
+      child: TableCalendar(
         rowHeight: 60,
         daysOfWeekHeight: 20,
         locale: 'ko_KR',
@@ -82,10 +83,6 @@ class CalendarView extends ConsumerWidget {
         headerVisible: false,
         daysOfWeekVisible: true,
         calendarFormat: CalendarFormat.month,
-        eventLoader: (day) => calendarViewModel
-            .getEventsForDay(day)
-            .whereType<DailyLogRecord>()
-            .toList(),
         onDaySelected: (selectedDay, focusedDay) {
           calendarViewModel.onDaySelected(selectedDay, focusedDay);
 
@@ -106,9 +103,6 @@ class CalendarView extends ConsumerWidget {
               TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.5)),
         ),
         calendarStyle: const CalendarStyle(
-          // 기본 마커를 숨깁니다.
-          markersAlignment: Alignment(0, 100), // 화면 밖으로 밀어내서 숨김
-          // 아래 데코레이션들은 calendarBuilders에서 직접 처리하므로 여기서는 비워둡니다.
           todayDecoration: BoxDecoration(color: Colors.transparent),
           selectedDecoration: BoxDecoration(color: Colors.transparent),
           defaultDecoration: BoxDecoration(color: Colors.transparent),
