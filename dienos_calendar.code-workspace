@@ -1,0 +1,24 @@
+{
+    "folders": [
+        {
+            "path": ".",
+            "name": "dienos_calendar (root)"
+        },
+        {
+            "path": "domain",
+            "name": "domain"
+        },
+        {
+            "path": "data",
+            "name": "data"
+        }
+    ],
+    "settings": {
+        "dart.flutterSdkPath": "D:\\flutter_windows_3.38.9-stable\\flutter",
+        "dart.sdkPath": "D:\\flutter_windows_3.38.9-stable\\flutter\\bin\\cache\\dart-sdk",
+        "dart.analysisExcludedFolders": [
+            "build",
+            ".dart_tool"
+        ]
+    }
+}

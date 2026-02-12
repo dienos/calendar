@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 
 import 'package:dienos_calendar/providers.dart';
@@ -58,19 +59,19 @@ class AddDailyLogScreen extends ConsumerWidget {
                       },
                       child: state.selectedEmotion != null
                           ? Column(
-                        key: const ValueKey('add_daily_log_content'),
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 32),
-                          _MemoInput(selectedDate: selectedDate),
-                          const SizedBox(height: 32),
-                          _PhotoAttachment(selectedDate: selectedDate),
-                          const SizedBox(height: 24),
-                        ],
-                      )
+                              key: const ValueKey('add_daily_log_content'),
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 32),
+                                _MemoInput(selectedDate: selectedDate),
+                                const SizedBox(height: 32),
+                                _PhotoAttachment(selectedDate: selectedDate),
+                                const SizedBox(height: 24),
+                              ],
+                            )
                           : const SizedBox.shrink(
-                        key: ValueKey('empty'),
-                      ),
+                              key: ValueKey('empty'),
+                            ),
                     ),
                   ],
                 ),
@@ -90,12 +91,12 @@ class AddDailyLogScreen extends ConsumerWidget {
               },
               child: state.selectedEmotion != null
                   ? _SaveButton(
-                key: const ValueKey('save_button'),
-                selectedDate: selectedDate,
-              )
+                      key: const ValueKey('save_button'),
+                      selectedDate: selectedDate,
+                    )
                   : const SizedBox.shrink(
-                key: ValueKey('empty_button'),
-              ),
+                      key: ValueKey('empty_button'),
+                    ),
             ),
           ],
         ),
@@ -181,7 +182,11 @@ class _EmotionSelector extends StatelessWidget {
                     ],
                   ),
                   child: Center(
-                    child: Text(emotion['emoji']!, style: const TextStyle(fontSize: 36)),
+                    child: SvgPicture.asset(
+                      emotion['svgPath']!,
+                      width: 40,
+                      height: 40,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -348,11 +353,11 @@ class _SaveButton extends ConsumerWidget {
         child: ElevatedButton(
           onPressed: isEmotionSelected
               ? () async {
-            final success = await viewModel.saveDailyLog();
-            if (success) {
-              Navigator.of(context).pop();
-            }
-          }
+                  final success = await viewModel.saveDailyLog();
+                  if (success) {
+                    Navigator.of(context).pop();
+                  }
+                }
               : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: isEmotionSelected ? theme.colorScheme.primary : Colors.grey[300],
@@ -364,20 +369,20 @@ class _SaveButton extends ConsumerWidget {
           ),
           child: state.isLoading
               ? const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(color: Colors.white))
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(color: Colors.white))
               : Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Text(
-                '기분 저장하기',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(width: 8),
-              Icon(Icons.favorite, size: 20),
-            ],
-          ),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Text(
+                      '기분 저장하기',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(width: 8),
+                    Icon(Icons.favorite, size: 20),
+                  ],
+                ),
         ),
       ),
     );

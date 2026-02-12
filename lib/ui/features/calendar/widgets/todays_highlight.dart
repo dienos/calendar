@@ -2,6 +2,7 @@ import 'package:dienos_calendar/providers.dart';
 import 'package:domain/entities/daily_log_record.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 
 import '../../add_daily_log/add_daily_log_screen_view_model.dart' as SelectEmotionScreen;
@@ -21,13 +22,12 @@ class TodaysHighlight extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    String? emoji = '✨';
     const emotions = SelectEmotionScreen.emotions;
     final entry = emotions.firstWhere(
-          (e) => e['label'] == firstLog.emotion,
-      orElse: () => {'emoji': '✨'},
+      (e) => e['label'] == firstLog.emotion,
+      orElse: () => <String, String>{},
     );
-    emoji = entry['emoji'];
+    final svgPath = entry['svgPath'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,11 +44,17 @@ class TodaysHighlight extends ConsumerWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
+                decoration: BoxDecoration(
                   color: theme.colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(18),
                 ),
-                child: Text(emoji ?? '', style: const TextStyle(fontSize: 32)),
+                child: svgPath != null && svgPath.isNotEmpty
+                    ? SvgPicture.asset(
+                        svgPath,
+                        width: 32,
+                        height: 32,
+                      )
+                    : const Text('✨', style: TextStyle(fontSize: 32)),
               ),
               const SizedBox(width: 16),
               Expanded(

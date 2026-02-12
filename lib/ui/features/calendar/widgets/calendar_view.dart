@@ -5,6 +5,7 @@ import 'package:dienos_calendar/utils/date_utils.dart';
 import 'package:domain/entities/daily_log_record.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class CalendarView extends ConsumerWidget {
@@ -17,17 +18,49 @@ class CalendarView extends ConsumerWidget {
     final theme = Theme.of(context);
     final today = DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
-    String? getPrimaryEmojiForDay(DateTime day) {
+    String? getDisplaySvgPathForDay(DateTime day) {
       final events = calendarViewModel.getEventsForDay(day);
       final firstLog = events.whereType<DailyLogRecord>().firstOrNull;
       if (firstLog != null) {
         final entry = emotions.firstWhere(
           (e) => e['label'] == firstLog.emotion,
-          orElse: () => {'emoji': ''},
+          orElse: () => {},
         );
-        return entry['emoji'];
+        return entry['svgPath'];
       }
       return null;
+    }
+
+    Widget buildCalendarDay(DateTime day, {BoxDecoration? decoration}) {
+      final svgPath = getDisplaySvgPathForDay(day);
+      final isToday = isSameDay(day, today);
+
+      return Container(
+        margin: const EdgeInsets.all(4.0),
+        decoration: decoration,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '${day.day}',
+                style: isToday
+                    ? theme.textTheme.bodyMedium!
+                        .copyWith(color: theme.colorScheme.primary)
+                    : theme.textTheme.bodyMedium,
+              ),
+              SizedBox(
+                height: 24.0,
+                child: Center(
+                  child: svgPath != null
+                      ? SvgPicture.asset(svgPath, width: 22, height: 22)
+                      : SvgPicture.asset("assets/svgs/empty.svg", width: 22, height: 22),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     return Container(
@@ -37,19 +70,15 @@ class CalendarView extends ConsumerWidget {
       ),
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
       child: TableCalendar<DailyLogRecord>(
-        rowHeight: 52,
+        rowHeight: 60,
         daysOfWeekHeight: 20,
         locale: 'ko_KR',
         firstDay: DateTime.utc(2020, 1, 1),
         lastDay: DateTime.utc(2030, 12, 31),
         focusedDay: calendarState.focusedDay,
-        selectedDayPredicate: (day) {
-          if (isSameDay(day, today)) {
-            return false;
-          }
-          return calendarState.selectedDay != null &&
-              day.isSameDayAs(calendarState.selectedDay!);
-        },
+        selectedDayPredicate: (day) =>
+            calendarState.selectedDay != null &&
+            day.isSameDayAs(calendarState.selectedDay!),
         headerVisible: false,
         daysOfWeekVisible: true,
         calendarFormat: CalendarFormat.month,
@@ -76,67 +105,36 @@ class CalendarView extends ConsumerWidget {
           weekendStyle:
               TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.5)),
         ),
-        calendarStyle: CalendarStyle(
-          todayDecoration: BoxDecoration(
-            color: theme.colorScheme.secondary.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(12),
-          ),
+        calendarStyle: const CalendarStyle(
+          // 기본 마커를 숨깁니다.
+          markersAlignment: Alignment(0, 100), // 화면 밖으로 밀어내서 숨김
+          // 아래 데코레이션들은 calendarBuilders에서 직접 처리하므로 여기서는 비워둡니다.
+          todayDecoration: BoxDecoration(color: Colors.transparent),
+          selectedDecoration: BoxDecoration(color: Colors.transparent),
+          defaultDecoration: BoxDecoration(color: Colors.transparent),
+          weekendDecoration: BoxDecoration(color: Colors.transparent),
         ),
         calendarBuilders: CalendarBuilders(
-          defaultBuilder: (context, day, focusedDay) {
-            final emoji = getPrimaryEmojiForDay(day);
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('${day.day}', style: theme.textTheme.bodyMedium),
-                  if (emoji != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2.0),
-                      child: Text(emoji, style: const TextStyle(fontSize: 18)),
-                    ),
-                ],
-              ),
-            );
-          },
+          defaultBuilder: (context, day, focusedDay) =>
+              buildCalendarDay(day),
           todayBuilder: (context, day, focusedDay) {
-            final emoji = getPrimaryEmojiForDay(day);
-            return Container(
-              margin: const EdgeInsets.all(4.0),
+            return buildCalendarDay(
+              day,
               decoration: BoxDecoration(
                 color: theme.colorScheme.secondary.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('${day.day}',
-                        style: theme.textTheme.bodyMedium!
-                            .copyWith(color: theme.colorScheme.primary)),
-                    if (emoji != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2.0),
-                        child: Text(emoji, style: const TextStyle(fontSize: 18)),
-                      ),
-                  ],
-                ),
-              ),
             );
           },
           selectedBuilder: (context, day, focusedDay) {
-            final emoji = getPrimaryEmojiForDay(day);
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('${day.day}', style: theme.textTheme.bodyMedium),
-                  if (emoji != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2.0),
-                      child: Text(emoji, style: const TextStyle(fontSize: 18)),
-                    ),
-                ],
+            return buildCalendarDay(
+              day,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: theme.colorScheme.primary,
+                  width: 2.0,
+                ),
+                borderRadius: BorderRadius.circular(12),
               ),
             );
           },

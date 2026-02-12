@@ -55,5 +55,5 @@ final calendarViewModelProvider =
 final addDailyLogViewModelProvider = StateNotifierProvider.family<
     AddDailyLogViewModel, AddDailyLogState, DateTime>((ref, selectedDate) {
   final addEventUseCase = ref.watch(addEventUseCaseProvider);
-  return AddDailyLogViewModel(selectedDate, addEventUseCase);
+  return AddDailyLogViewModel(ref, selectedDate, addEventUseCase);
 });

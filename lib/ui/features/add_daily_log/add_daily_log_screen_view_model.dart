@@ -1,18 +1,18 @@
 import 'dart:io';
 
+import 'package:dienos_calendar/providers.dart';
 import 'package:domain/entities/daily_log_record.dart';
 import 'package:domain/usecases/add_event_usecase.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 const List<Map<String, String>> emotions = [
-  {'emoji': '🤩', 'label': '정말 좋음'},
-  {'emoji': '🙂', 'label': '좋음'},
-  {'emoji': '😐', 'label': '보통'},
-  {'emoji': '😟', 'label': '나쁨'},
-  {'emoji': '😠', 'label': '끔찍함'},
+  {'svgPath': 'assets/svgs/emotion_very_good.svg', 'label': '정말 좋음'},
+  {'svgPath': 'assets/svgs/emotion_good.svg', 'label': '좋음'},
+  {'svgPath': 'assets/svgs/emotion_soso.svg', 'label': '보통'},
+  {'svgPath': 'assets/svgs/emotion_bad.svg', 'label': '나쁨'},
+  {'svgPath': 'assets/svgs/emotion_very_bad.svg', 'label': '끔찍함'},
 ];
 
 class AddDailyLogState {
@@ -76,10 +76,11 @@ class AddDailyLogState {
 }
 
 class AddDailyLogViewModel extends StateNotifier<AddDailyLogState> {
+  final Ref _ref;
   final AddEventUseCase _addEventUseCase;
   final _picker = ImagePicker();
 
-  AddDailyLogViewModel(DateTime selectedDate, this._addEventUseCase)
+  AddDailyLogViewModel(this._ref, DateTime selectedDate, this._addEventUseCase)
       : super(AddDailyLogState(selectedDate: selectedDate));
 
   void selectEmotion(String emotion) {
@@ -114,6 +115,7 @@ class AddDailyLogViewModel extends StateNotifier<AddDailyLogState> {
     try {
       final record = DailyLogRecord(state.selectedEmotion!, state.memo);
       await _addEventUseCase(state.selectedDate, record);
+      _ref.invalidate(calendarViewModelProvider);
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
@@ -122,4 +124,3 @@ class AddDailyLogViewModel extends StateNotifier<AddDailyLogState> {
     }
   }
 }
-
