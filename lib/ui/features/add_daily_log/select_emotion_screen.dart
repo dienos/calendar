@@ -15,10 +15,9 @@ class AddDailyLogScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(addDailyLogViewModelProvider(selectedDate));
     final viewModel = ref.read(addDailyLogViewModelProvider(selectedDate).notifier);
-    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: const Color(0xFFFEF9F9),
       body: SafeArea(
         child: Column(
           children: [
@@ -44,19 +43,62 @@ class AddDailyLogScreen extends ConsumerWidget {
                       selectedEmotion: state.selectedEmotion,
                       onSelectEmotion: viewModel.selectEmotion,
                     ),
-                    const SizedBox(height: 32),
-                    _MemoInput(selectedDate: selectedDate),
-                    const SizedBox(height: 32),
-                    _PhotoAttachment(selectedDate: selectedDate),
-                    const SizedBox(height: 120), // For bottom button spacing
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 500),
+                      transitionBuilder: (child, animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SizeTransition(
+                            sizeFactor: animation,
+                            axis: Axis.vertical,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: state.selectedEmotion != null
+                          ? Column(
+                        key: const ValueKey('add_daily_log_content'),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 32),
+                          _MemoInput(selectedDate: selectedDate),
+                          const SizedBox(height: 32),
+                          _PhotoAttachment(selectedDate: selectedDate),
+                          const SizedBox(height: 24),
+                        ],
+                      )
+                          : const SizedBox.shrink(
+                        key: ValueKey('empty'),
+                      ),
+                    ),
                   ],
                 ),
+              ),
+            ),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SizeTransition(
+                    sizeFactor: animation,
+                    axis: Axis.vertical,
+                    child: child,
+                  ),
+                );
+              },
+              child: state.selectedEmotion != null
+                  ? _SaveButton(
+                key: const ValueKey('save_button'),
+                selectedDate: selectedDate,
+              )
+                  : const SizedBox.shrink(
+                key: ValueKey('empty_button'),
               ),
             ),
           ],
         ),
       ),
-      // Floating action button is removed and replaced by a button within the body
     );
   }
 }
@@ -88,9 +130,7 @@ class _CustomAppBar extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.more_horiz),
-            onPressed: () {
-              // TODO: Implement more options
-            },
+            onPressed: () {},
           ),
         ],
       ),
@@ -108,7 +148,7 @@ class _EmotionSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return SizedBox(
-      height: 90,
+      height: 100,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: emotions.length,
@@ -120,19 +160,30 @@ class _EmotionSelector extends StatelessWidget {
             onTap: () => onSelectEmotion(emotion['label']!),
             child: Column(
               children: [
-                Container(
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isSelected ? theme.colorScheme.primary.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
-                    border: isSelected ? Border.all(color: theme.colorScheme.primary, width: 2) : null,
+                    color: Colors.white,
+                    border: isSelected ? Border.all(color: theme.colorScheme.primary, width: 2.5) : null,
+                    boxShadow: [
+                      BoxShadow(
+                        color: isSelected
+                            ? theme.colorScheme.primary.withOpacity(0.3)
+                            : Colors.black.withOpacity(0.08),
+                        blurRadius: 15,
+                        spreadRadius: isSelected ? 1 : 0,
+                        offset: const Offset(0, 4),
+                      )
+                    ],
                   ),
                   child: Center(
                     child: Text(emotion['emoji']!, style: const TextStyle(fontSize: 36)),
                   ),
                 ),
-                const SizedBox(height: 2), // Adjusted spacing to prevent overflow
+                const SizedBox(height: 4),
                 Text(
                   emotion['label']!,
                   style: TextStyle(
@@ -174,15 +225,14 @@ class _MemoInput extends ConsumerWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
-              BoxShadow(color: Colors.grey.withOpacity(0.1), spreadRadius: 1, blurRadius: 10)
-            ]
+              BoxShadow(color: Colors.black.withOpacity(0.05), spreadRadius: 1, blurRadius: 12)
+            ],
           ),
           child: TextField(
             onChanged: (text) => ref.read(addDailyLogViewModelProvider(selectedDate).notifier).updateMemo(text),
             decoration: InputDecoration(
               hintText: '오늘의 이야기를 적어보세요...',
               border: InputBorder.none,
-              // suffixIcon: Icon(Icons.mic, color: Colors.grey[400]), // Removed mic icon
             ),
             maxLines: 5,
             keyboardType: TextInputType.multiline,
@@ -226,10 +276,9 @@ class _PhotoAttachment extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-               border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1.5)
-            ),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), spreadRadius: 1, blurRadius: 12)]),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -244,13 +293,16 @@ class _PhotoAttachment extends ConsumerWidget {
         ...state.images.asMap().entries.map((entry) {
           int idx = entry.key;
           File imageFile = entry.value;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12.0),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20.0),
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 4))]),
             child: Stack(
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(20.0),
-                  child: Image.file(imageFile, fit: BoxFit.cover, width: double.infinity, height: 200)
+                  child: Image.file(imageFile, fit: BoxFit.cover, width: double.infinity, height: 200),
                 ),
                 Positioned(
                   top: 10,
@@ -276,62 +328,56 @@ class _PhotoAttachment extends ConsumerWidget {
   }
 }
 
-class _SaveButton extends StatelessWidget {
+class _SaveButton extends ConsumerWidget {
   final DateTime selectedDate;
-  const _SaveButton({required this.selectedDate});
+  const _SaveButton({super.key, required this.selectedDate});
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Consumer(
-              builder: (context, ref, _) {
-                final state = ref.watch(addDailyLogViewModelProvider(selectedDate));
-                final viewModel = ref.read(addDailyLogViewModelProvider(selectedDate).notifier);
-                final theme = Theme.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(addDailyLogViewModelProvider(selectedDate));
+    final viewModel = ref.read(addDailyLogViewModelProvider(selectedDate).notifier);
+    final theme = Theme.of(context);
 
-                return ElevatedButton(
-                  onPressed: () async {
-                    final success = await viewModel.saveDailyLog();
-                    if (success) {
-                      Navigator.of(context).pop();
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('감정을 선택해주세요.')),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-                    elevation: 2,
-                  ),
-                  child: state.isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(color: Colors.white))
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Text(
-                              '기분 저장하기',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(width: 8),
-                            Icon(Icons.favorite, size: 20),
-                          ],
-                        ),
-                );
-              },
-            ),
+    final bool isEmotionSelected = state.selectedEmotion != null;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 16.0),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: isEmotionSelected
+              ? () async {
+            final success = await viewModel.saveDailyLog();
+            if (success) {
+              Navigator.of(context).pop();
+            }
+          }
+              : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isEmotionSelected ? theme.colorScheme.primary : Colors.grey[300],
+            foregroundColor: isEmotionSelected ? Colors.white : Colors.grey[500],
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+            elevation: isEmotionSelected ? 5 : 0,
+            shadowColor: theme.colorScheme.primary.withOpacity(0.4),
           ),
-        ],
+          child: state.isLoading
+              ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(color: Colors.white))
+              : Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Text(
+                '기분 저장하기',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(width: 8),
+              Icon(Icons.favorite, size: 20),
+            ],
+          ),
+        ),
       ),
     );
   }
