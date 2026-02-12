@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:domain/entities/daily_log_record.dart';
 import 'package:domain/usecases/add_event_usecase.dart';
 import 'package:domain/usecases/get_events_usecase.dart';
+import 'ui/features/add_daily_log/add_daily_log_screen_view_model.dart';
 import 'ui/features/calendar/calendar_view_model.dart';
 
 // --- Composition Root ---
@@ -49,4 +50,10 @@ final calendarViewModelProvider =
         focusedDay: now,
         events: {},
       ));
+});
+
+final addDailyLogViewModelProvider = StateNotifierProvider.family<
+    AddDailyLogViewModel, AddDailyLogState, DateTime>((ref, selectedDate) {
+  final addEventUseCase = ref.watch(addEventUseCaseProvider);
+  return AddDailyLogViewModel(selectedDate, addEventUseCase);
 });

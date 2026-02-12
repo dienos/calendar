@@ -11,7 +11,7 @@ import 'daily_log_entity.dart';
     )
   ],
 )
-class ImageEntity {
+class IMAGEENTITY {
   @PrimaryKey(autoGenerate: true)
   final int? id;
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:dienos_calendar/providers.dart';
 import 'add_daily_log_screen_view_model.dart';
 
 class AddDailyLogScreen extends ConsumerWidget {

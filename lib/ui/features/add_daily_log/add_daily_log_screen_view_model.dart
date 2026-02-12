@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:domain/entities/daily_log_record.dart';
+import 'package:domain/usecases/add_event_usecase.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -74,9 +76,10 @@ class AddDailyLogState {
 }
 
 class AddDailyLogViewModel extends StateNotifier<AddDailyLogState> {
+  final AddEventUseCase _addEventUseCase;
   final _picker = ImagePicker();
 
-  AddDailyLogViewModel(DateTime selectedDate)
+  AddDailyLogViewModel(DateTime selectedDate, this._addEventUseCase)
       : super(AddDailyLogState(selectedDate: selectedDate));
 
   void selectEmotion(String emotion) {
@@ -109,8 +112,8 @@ class AddDailyLogViewModel extends StateNotifier<AddDailyLogState> {
 
     state = state.copyWith(isLoading: true);
     try {
-      // TODO: Implement actual saving logic using a use case
-      await Future.delayed(const Duration(seconds: 1));
+      final record = DailyLogRecord(state.selectedEmotion!, state.memo);
+      await _addEventUseCase(state.selectedDate, record);
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
@@ -120,7 +123,3 @@ class AddDailyLogViewModel extends StateNotifier<AddDailyLogState> {
   }
 }
 
-final addDailyLogViewModelProvider = StateNotifierProvider.family<
-    AddDailyLogViewModel, AddDailyLogState, DateTime>((ref, selectedDate) {
-  return AddDailyLogViewModel(selectedDate);
-});
