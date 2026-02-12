@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:data/datasources/local/dao/image_dao.dart';
-import 'package:data/datasources/local/entity/image_entity.dart';
 import 'package:domain/repositories/image_repository.dart';
+import '../datasources/local/entity/image_entity.dart';
 
 class ImageRepositoryImpl implements ImageRepository {
   final ImageDao imageDao;
