@@ -52,7 +52,7 @@ class StatCard extends StatelessWidget {
                         Text(
                           title,
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.onBackground,
+                            color: theme.colorScheme.onSurface,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),

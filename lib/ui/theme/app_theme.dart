@@ -36,18 +36,15 @@ class AppTheme {
     final colorScheme = ColorScheme.light(
       primary: colorTheme.activeColor,
       secondary: colorTheme.primaryColor,
-      background: colorTheme.gradientColors.last,
       surface: colorTheme.cardColor,
       onPrimary: Colors.white,
       onSecondary: colorTheme.textColor,
-      onBackground: colorTheme.textColor,
       onSurface: colorTheme.textColor,
       error: Colors.red.shade400,
       onError: Colors.white,
     );
 
     return ThemeData.light().copyWith(
-      useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: Colors.transparent,
       iconTheme: IconThemeData(color: colorTheme.activeColor),
@@ -81,18 +78,15 @@ class AppTheme {
     final colorScheme = ColorScheme.dark(
       primary: colorTheme.darkActiveColor,
       secondary: colorTheme.primaryColorDark,
-      background: colorTheme.darkGradientColors.first,
       surface: colorTheme.darkCardColor,
       onPrimary: Colors.white,
       onSecondary: colorTheme.darkTextColor,
-      onBackground: colorTheme.darkTextColor,
       onSurface: colorTheme.darkTextColor,
       error: Colors.red.shade400,
       onError: Colors.white,
     );
 
     return ThemeData.dark().copyWith(
-      useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: Colors.transparent,
       iconTheme: IconThemeData(color: colorTheme.darkActiveColor),

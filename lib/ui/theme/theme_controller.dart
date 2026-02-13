@@ -10,6 +10,7 @@ enum AppThemeMode {
 
   final String label;
   final ThemeMode mode;
+
   const AppThemeMode(this.label, this.mode);
 }
 
@@ -25,6 +26,14 @@ enum AppColorTheme {
     AppColors.warmPinkGradientsDark,
     AppColors.warmPinkActiveDark,
     AppColors.warmPinkTextDark,
+    AppColors.warmPinkCard,
+    AppColors.warmPinkCardDark,
+    AppColors.warmPinkShadow,
+    20.0,
+    8.0,
+    AppColors.warmPinkShadowDark,
+    25.0,
+    10.0,
   ),
   softLemon(
     "소프트 레몬",
@@ -37,6 +46,14 @@ enum AppColorTheme {
     AppColors.softLemonGradientsDark,
     AppColors.softLemonActiveDark,
     AppColors.softLemonTextDark,
+    AppColors.softLemonCard,
+    AppColors.softLemonCardDark,
+    AppColors.softLemonShadow,
+    18.0,
+    6.0,
+    AppColors.softLemonShadowDark,
+    25.0,
+    10.0,
   ),
   skyBlue(
     "스카이 블루",
@@ -49,6 +66,14 @@ enum AppColorTheme {
     AppColors.skyBlueGradientsDark,
     AppColors.skyBlueActiveDark,
     AppColors.skyBlueTextDark,
+    AppColors.skyBlueCard,
+    AppColors.skyBlueCardDark,
+    AppColors.skyBlueShadow,
+    20.0,
+    8.0,
+    AppColors.skyBlueShadowDark,
+    25.0,
+    10.0,
   ),
   mintGreen(
     "민트 그린",
@@ -61,6 +86,14 @@ enum AppColorTheme {
     AppColors.mintGreenGradientsDark,
     AppColors.mintGreenActiveDark,
     AppColors.mintGreenTextDark,
+    AppColors.mintGreenCard,
+    AppColors.mintGreenCardDark,
+    AppColors.mintGreenShadow,
+    20.0,
+    8.0,
+    AppColors.mintGreenShadowDark,
+    25.0,
+    10.0,
   ),
   lavender(
     "라벤더",
@@ -73,6 +106,14 @@ enum AppColorTheme {
     AppColors.lavenderGradientsDark,
     AppColors.lavenderActiveDark,
     AppColors.lavenderTextDark,
+    AppColors.lavenderCard,
+    AppColors.lavenderCardDark,
+    AppColors.lavenderShadow,
+    20.0,
+    8.0,
+    AppColors.lavenderShadowDark,
+    25.0,
+    10.0,
   ),
   creamyWhite(
     "크리미 화이트",
@@ -85,6 +126,14 @@ enum AppColorTheme {
     AppColors.creamyWhiteGradientsDark,
     AppColors.creamyWhiteActiveDark,
     AppColors.creamyWhiteTextDark,
+    AppColors.creamyWhiteCard,
+    AppColors.creamyWhiteCardDark,
+    AppColors.creamyWhiteShadow,
+    25.0,
+    10.0,
+    AppColors.creamyWhiteShadowDark,
+    30.0,
+    12.0,
   );
 
   final String label;
@@ -98,6 +147,15 @@ enum AppColorTheme {
   final List<Color> darkGradientColors;
   final Color darkActiveColor;
   final Color darkTextColor;
+  final Color cardColor;
+  final Color darkCardColor;
+
+  final Color shadowColor;
+  final double shadowBlur;
+  final double shadowY;
+  final Color darkShadowColor;
+  final double darkShadowBlur;
+  final double darkShadowY;
 
   const AppColorTheme(
     this.label,
@@ -110,6 +168,14 @@ enum AppColorTheme {
     this.darkGradientColors,
     this.darkActiveColor,
     this.darkTextColor,
+    this.cardColor,
+    this.darkCardColor,
+    this.shadowColor,
+    this.shadowBlur,
+    this.shadowY,
+    this.darkShadowColor,
+    this.darkShadowBlur,
+    this.darkShadowY,
   );
 }
 

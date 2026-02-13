@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:domain/entities/daily_log_record.dart';
 import 'package:dienos_calendar/providers.dart';
 import 'package:dienos_calendar/ui/common/gradient_background.dart';
 import 'package:dienos_calendar/ui/common/glassy_container.dart';

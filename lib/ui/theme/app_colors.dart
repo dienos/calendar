@@ -19,6 +19,7 @@ class AppColors {
   static const Color warmPinkActive = Color(0xFFC2185B);
   static const Color warmPinkText = Color(0xFF880E4F);
   static const Color warmPinkCard = Color(0xCCFFFFFF); // 80% 화이트
+  static const Color warmPinkShadow = Color(0x20880E4F);
 
   static const Color warmPinkPrimaryDark = Color(0xFFEC407A);
   static const List<Color> warmPinkGradientsDark = [
@@ -30,6 +31,7 @@ class AppColors {
   static const Color warmPinkActiveDark = Color(0xFFF06292);
   static const Color warmPinkTextDark = Color(0xFFFFFFFF);
   static const Color warmPinkCardDark = Color(0x33FFFFFF); // 20% 화이트
+  static const Color warmPinkShadowDark = Color(0x60000000);
 
   // --- Soft Lemon ---
   static const Color softLemonPrimary = Color(0xFFFFF59D);
@@ -42,6 +44,7 @@ class AppColors {
   static const Color softLemonActive = Color(0xFF4E342E);
   static const Color softLemonText = Color(0xDD000000);
   static const Color softLemonCard = Color(0xE6FFFDE7); // 90% 레몬
+  static const Color softLemonShadow = Color(0x154E342E);
 
   static const Color softLemonPrimaryDark = Color(0xFFFFD54F);
   static const List<Color> softLemonGradientsDark = [
@@ -53,6 +56,7 @@ class AppColors {
   static const Color softLemonActiveDark = Color(0xFFFFE082);
   static const Color softLemonTextDark = Color(0xFFFFFFFF);
   static const Color softLemonCardDark = Color(0x26FFFFFF); // 15% 화이트
+  static const Color softLemonShadowDark = Color(0x50000000);
 
   // --- Sky Blue ---
   static const Color skyBluePrimary = Color(0xFF64B5F6);
@@ -65,6 +69,7 @@ class AppColors {
   static const Color skyBlueActive = Color(0xFF1565C0);
   static const Color skyBlueText = Color(0xFF0D47A1);
   static const Color skyBlueCard = Color(0xE6E3F2FD); // 90% 블루
+  static const Color skyBlueShadow = Color(0x150D47A1);
 
   static const Color skyBluePrimaryDark = Color(0xFF64B5F6);
   static const List<Color> skyBlueGradientsDark = [
@@ -76,6 +81,7 @@ class AppColors {
   static const Color skyBlueActiveDark = Color(0xFF90CAF9);
   static const Color skyBlueTextDark = Color(0xFFFFFFFF);
   static const Color skyBlueCardDark = Color(0x26FFFFFF); // 15% 화이트
+  static const Color skyBlueShadowDark = Color(0x50000000);
 
   // --- Mint Green ---
   static const Color mintGreenPrimary = Color(0xFF81C784);
@@ -88,6 +94,7 @@ class AppColors {
   static const Color mintGreenActive = Color(0xFF2E7D32);
   static const Color mintGreenText = Color(0xFF1B5E20);
   static const Color mintGreenCard = Color(0xE6E8F5E9); // 90% 민트
+  static const Color mintGreenShadow = Color(0x151B5E20);
 
   static const Color mintGreenPrimaryDark = Color(0xFFA5D6A7);
   static const List<Color> mintGreenGradientsDark = [
@@ -99,6 +106,7 @@ class AppColors {
   static const Color mintGreenActiveDark = Color(0xFFC8E6C9);
   static const Color mintGreenTextDark = Color(0xFFFFFFFF);
   static const Color mintGreenCardDark = Color(0x26FFFFFF); // 15% 화이트
+  static const Color mintGreenShadowDark = Color(0x50000000);
 
   // --- Lavender ---
   static const Color lavenderPrimary = Color(0xFFBA68C8);
@@ -111,6 +119,7 @@ class AppColors {
   static const Color lavenderActive = Color(0xFF7B1FA2);
   static const Color lavenderText = Color(0xFF4A148C);
   static const Color lavenderCard = Color(0xE6F3E5F5); // 90% 퍼플
+  static const Color lavenderShadow = Color(0x204A148C);
 
   static const Color lavenderPrimaryDark = Color(0xFFCE93D8);
   static const List<Color> lavenderGradientsDark = [
@@ -120,8 +129,9 @@ class AppColors {
     Color(0xFF512DA8),
   ];
   static const Color lavenderActiveDark = Color(0xFFE1BEE7);
-  static const Color lavenderTextDark = Color(0xFFFFFFFF);
+  static const Color lavenderTextDark = Color.fromARGB(255, 8, 6, 6);
   static const Color lavenderCardDark = Color(0x26FFFFFF); // 15% 화이트
+  static const Color lavenderShadowDark = Color(0x55000000);
 
   // --- Creamy White ---
   static const Color creamyWhitePrimary = Color(0xFFE0E0E0);
@@ -134,6 +144,7 @@ class AppColors {
   static const Color creamyWhiteActive = Color(0xFF212121);
   static const Color creamyWhiteText = Color(0xDD000000);
   static const Color creamyWhiteCard = Color(0xFFFFFFFF); // 100% 화이트
+  static const Color creamyWhiteShadow = Color(0x15000000);
 
   static const Color creamyWhitePrimaryDark = Color(0xFFBDBDBD);
   static const List<Color> creamyWhiteGradientsDark = [
@@ -145,4 +156,5 @@ class AppColors {
   static const Color creamyWhiteActiveDark = Color(0xFFE0E0E0);
   static const Color creamyWhiteTextDark = Color(0xFFFFFFFF);
   static const Color creamyWhiteCardDark = Color(0x33FFFFFF); // 20% 화이트
+  static const Color creamyWhiteShadowDark = Color(0x60000000);
 }

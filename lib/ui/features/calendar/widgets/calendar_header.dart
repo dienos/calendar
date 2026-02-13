@@ -21,8 +21,10 @@ class CalendarHeader extends ConsumerWidget {
           children: [
             Text(
               DateFormat.MMMM('ko_KR').format(calendarState.focusedDay),
-              style: theme.textTheme.headlineMedium!
-                  .copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.onBackground),
+              style: theme.textTheme.headlineMedium!.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onSurface,
+              ),
             ),
             Text(
               DateFormat.y('ko_KR').format(calendarState.focusedDay),
@@ -36,14 +38,14 @@ class CalendarHeader extends ConsumerWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12)),
+                color: theme.colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: IconButton(
                 padding: EdgeInsets.zero,
                 icon: Icon(Icons.chevron_left, color: theme.colorScheme.primary),
                 onPressed: () {
-                  final newFocusedDay = DateTime(
-                      calendarState.focusedDay.year, calendarState.focusedDay.month - 1);
+                  final newFocusedDay = DateTime(calendarState.focusedDay.year, calendarState.focusedDay.month - 1);
                   calendarViewModel.onPageChanged(newFocusedDay);
                 },
               ),
@@ -53,20 +55,20 @@ class CalendarHeader extends ConsumerWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12)),
+                color: theme.colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: IconButton(
                 padding: EdgeInsets.zero,
                 icon: Icon(Icons.chevron_right, color: theme.colorScheme.primary),
                 onPressed: () {
-                  final newFocusedDay = DateTime(
-                      calendarState.focusedDay.year, calendarState.focusedDay.month + 1);
+                  final newFocusedDay = DateTime(calendarState.focusedDay.year, calendarState.focusedDay.month + 1);
                   calendarViewModel.onPageChanged(newFocusedDay);
                 },
               ),
             ),
           ],
-        )
+        ),
       ],
     );
   }

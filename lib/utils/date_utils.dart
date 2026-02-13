@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 extension DateTimeExtension on DateTime {
   /// Checks if this DateTime is after the [other] DateTime, ignoring time.
   bool isAfterDay(DateTime other) {

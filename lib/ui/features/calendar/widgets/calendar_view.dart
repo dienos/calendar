@@ -97,7 +97,7 @@ class CalendarView extends ConsumerWidget {
         firstDay: DateTime.utc(2020, 1, 1),
         lastDay: DateTime.utc(2030, 12, 31),
         focusedDay: calendarState.focusedDay,
-        selectedDayPredicate: (day) => calendarState.selectedDay != null && day.isSameDayAs(calendarState.selectedDay!),
+        selectedDayPredicate: (day) => day.isSameDayAs(calendarState.selectedDay),
         headerVisible: false,
         daysOfWeekVisible: true,
         calendarFormat: CalendarFormat.month,
