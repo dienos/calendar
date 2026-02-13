@@ -36,8 +36,7 @@ class _AddDailyLogScreenState extends ConsumerState<AddDailyLogScreen> {
     if (widget.initialRecord != null) {
       _memoController.text = widget.initialRecord!.memo;
       Future.microtask(() {
-        ref.read(addDailyLogViewModelProvider(widget.selectedDate).notifier)
-           .loadInitialData(widget.initialRecord!);
+        ref.read(addDailyLogViewModelProvider(widget.selectedDate).notifier).loadInitialData(widget.initialRecord!);
       });
     }
   }
@@ -68,7 +67,7 @@ class _AddDailyLogScreenState extends ConsumerState<AddDailyLogScreen> {
                       const SizedBox(height: 24),
                       Text(
                         state.isEditMode ? '기록을 수정하시겠어요?' : '오늘 기분은 어떠신가요?',
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -136,7 +135,7 @@ class _CustomAppBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(addDailyLogViewModelProvider(selectedDate));
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
@@ -167,7 +166,7 @@ class _EmotionSelector extends StatelessWidget {
   final String? selectedEmotion;
   final Function(String) onSelectEmotion;
 
-  const _EmotionSelector({super.key, this.selectedEmotion, required this.onSelectEmotion});
+  const _EmotionSelector({this.selectedEmotion, required this.onSelectEmotion});
 
   @override
   Widget build(BuildContext context) {
@@ -189,18 +188,13 @@ class _EmotionSelector extends StatelessWidget {
                   transform: Matrix4.identity()..scale(isSelected ? 1.15 : 1.0),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isSelected 
-                        ? theme.colorScheme.primary.withOpacity(0.2) 
+                    color: isSelected
+                        ? theme.colorScheme.primary.withOpacity(0.2)
                         : (theme.brightness == Brightness.dark ? Colors.grey[800] : Colors.white),
-                    border: Border.all(
-                      color: isSelected ? theme.colorScheme.primary : Colors.transparent,
-                      width: 2.5,
-                    ),
+                    border: Border.all(color: isSelected ? theme.colorScheme.primary : Colors.transparent, width: 2.5),
                     boxShadow: [
                       BoxShadow(
-                        color: isSelected 
-                            ? theme.colorScheme.primary.withOpacity(0.4) 
-                            : Colors.black.withOpacity(0.1),
+                        color: isSelected ? theme.colorScheme.primary.withOpacity(0.4) : Colors.black.withOpacity(0.1),
                         blurRadius: isSelected ? 10 : 5,
                         spreadRadius: isSelected ? 1 : 0,
                         offset: const Offset(0, 3),
@@ -215,9 +209,7 @@ class _EmotionSelector extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected 
-                        ? theme.colorScheme.primary 
-                        : theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                    color: isSelected ? theme.colorScheme.primary : theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                   ),
                   child: Text(emotion['label']!),
                 ),

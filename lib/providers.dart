@@ -10,10 +10,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:domain/entities/daily_log_record.dart';
 import 'package:domain/usecases/add_event_usecase.dart';
 import 'package:domain/usecases/get_events_usecase.dart';
+
 import 'ui/features/add_daily_log/add_daily_log_screen_view_model.dart';
 import 'ui/features/calendar/calendar_view_model.dart';
 import 'package:domain/usecases/update_event_usecase.dart';
-import 'package:domain/usecases/get_events_usecase.dart';
+
+import 'package:domain/usecases/get_monthly_logs_usecase.dart';
+import 'ui/features/emotion_list/emotion_list_view_model.dart';
 
 // --- Composition Root ---
 
@@ -98,6 +101,17 @@ final dailyLogDetailProvider = FutureProvider.autoDispose.family<DailyLogRecord?
   final useCase = ref.watch(getDailyLogDetailUseCaseProvider);
   return useCase(date);
 });
+
+final getMonthlyLogsUseCaseProvider = Provider<GetMonthlyLogsUseCase>((ref) {
+  final repository = ref.watch(calendarRepositoryProvider);
+  return GetMonthlyLogsUseCase(repository);
+});
+
+final emotionListViewModelProvider = StateNotifierProvider.autoDispose
+    .family<EmotionListViewModel, AsyncValue<List<DailyLogRecord>>, DateTime>((ref, month) {
+      final useCase = ref.watch(getMonthlyLogsUseCaseProvider);
+      return EmotionListViewModel(useCase, month);
+    });
 
 class MonthlyStatsViewModel extends StateNotifier<MonthlyStats> {
   final DateTime _month;

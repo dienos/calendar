@@ -2,6 +2,7 @@ import 'package:dienos_calendar/providers.dart';
 import 'package:dienos_calendar/ui/common/stat_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dienos_calendar/ui/features/emotion_list/emotion_list_screen.dart';
 
 class MonthlyHighlight extends ConsumerWidget {
   const MonthlyHighlight({super.key});
@@ -22,6 +23,12 @@ class MonthlyHighlight extends ConsumerWidget {
           title: "기분 입력",
           count: "${stats.moodEntries}회",
           subtitle: "이번 달 꾸준히 기록하셨네요!",
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => EmotionListScreen(focusedMonth: focusedMonth)),
+            );
+          },
         ),
       );
     }

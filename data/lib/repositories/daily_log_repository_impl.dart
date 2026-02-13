@@ -11,18 +11,20 @@ class DailyLogRepositoryImpl implements DailyLogRepository {
   Future<DailyLogRecord?> getDailyLogDetail(DateTime date) async {
     if (_database == null) return null;
 
-    final dailyLog = await _database!.dailyLogDao.findDailyLogByDate(date);
+    final dailyLog = await _database.dailyLogDao.findDailyLogByDate(date);
 
     if (dailyLog != null && dailyLog.id != null) {
-      final images = await _database!.dailyLogDao.findImagesByLogId(dailyLog.id!);
-      
+      final images = await _database.dailyLogDao.findImagesByLogId(
+        dailyLog.id!,
+      );
+
       return DailyLogRecord(
         dailyLog.emotion,
         dailyLog.memo,
         images: images.map((e) => e.path).toList(),
       );
     }
-    
+
     return null;
   }
 }

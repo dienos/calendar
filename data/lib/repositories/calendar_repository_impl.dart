@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:intl/intl.dart';
+
 import 'package:data/datasources/local/app_database.dart';
 import 'package:data/datasources/local/entity/daily_log_entity.dart';
 import 'package:data/datasources/local/entity/image_entity.dart';
@@ -17,7 +19,7 @@ class CalendarRepositoryImpl implements CalendarRepository {
   Future<Map<DateTime, List<DailyRecord>>> getEvents() async {
     if (_database == null) return {};
 
-    final allDailyLogs = await _database!.dailyLogDao.findAllDailyLogs();
+    final allDailyLogs = await _database.dailyLogDao.findAllDailyLogs();
     final Map<DateTime, List<DailyRecord>> events = {};
 
     for (var dailyLogEntity in allDailyLogs) {
@@ -51,7 +53,7 @@ class CalendarRepositoryImpl implements CalendarRepository {
         memo: newRecord.memo,
         date: date,
       );
-      final dailyLogId = await _database!.dailyLogDao.insertDailyLog(
+      final dailyLogId = await _database.dailyLogDao.insertDailyLog(
         dailyLogEntity,
       );
 
@@ -67,7 +69,7 @@ class CalendarRepositoryImpl implements CalendarRepository {
               dailyLogId: dailyLogId,
               path: savedFile.path,
             );
-            await _database!.imageDao.insertImage(imageEntity);
+            await _database.imageDao.insertImage(imageEntity);
           }
         }
       }
@@ -80,7 +82,7 @@ class CalendarRepositoryImpl implements CalendarRepository {
       return;
     }
 
-    final existingLog = await _database!.dailyLogDao.findDailyLogByDate(date);
+    final existingLog = await _database.dailyLogDao.findDailyLogByDate(date);
 
     if (existingLog == null) {
       // 데이터가 없으면 새로 추가
@@ -96,11 +98,11 @@ class CalendarRepositoryImpl implements CalendarRepository {
         memo: updatedRecord.memo,
         date: date,
       );
-      await _database!.dailyLogDao.updateDailyLog(updatedEntity);
+      await _database.dailyLogDao.updateDailyLog(updatedEntity);
 
       // 2. 이미지 업데이트 (기존 연결 삭제 후 재등록)
       if (existingLog.id != null) {
-        await _database!.imageDao.deleteImagesByDailyLogId(existingLog.id!);
+        await _database.imageDao.deleteImagesByDailyLogId(existingLog.id!);
 
         if (updatedRecord.images.isNotEmpty) {
           final appDir = await _getAppImageDirectory();
@@ -128,7 +130,7 @@ class CalendarRepositoryImpl implements CalendarRepository {
               dailyLogId: existingLog.id!,
               path: finalPath,
             );
-            await _database!.imageDao.insertImage(imageEntity);
+            await _database.imageDao.insertImage(imageEntity);
           }
         }
       }
@@ -147,7 +149,7 @@ class CalendarRepositoryImpl implements CalendarRepository {
   @override
   Future<int> countMemoEntriesForMonth(String yearMonth) async {
     if (_database == null) return 0;
-    final count = await _database!.dailyLogDao.countMemoEntriesForMonth(
+    final count = await _database.dailyLogDao.countMemoEntriesForMonth(
       yearMonth,
     );
     return count ?? 0;
@@ -156,7 +158,7 @@ class CalendarRepositoryImpl implements CalendarRepository {
   @override
   Future<int> countMoodEntriesForMonth(String yearMonth) async {
     if (_database == null) return 0;
-    final count = await _database!.dailyLogDao.countMoodEntriesForMonth(
+    final count = await _database.dailyLogDao.countMoodEntriesForMonth(
       yearMonth,
     );
     return count ?? 0;
@@ -165,9 +167,30 @@ class CalendarRepositoryImpl implements CalendarRepository {
   @override
   Future<int> countPhotoEntriesForMonth(String yearMonth) async {
     if (_database == null) return 0;
-    final count = await _database!.imageDao.countPhotoEntriesForMonth(
+    final count = await _database.imageDao.countPhotoEntriesForMonth(yearMonth);
+    return count ?? 0;
+  }
+
+  @override
+  Future<List<DailyRecord>> getMonthlyLogs(DateTime month) async {
+    if (_database == null) return [];
+
+    final yearMonth = DateFormat('yyyy-MM').format(month);
+    final entities = await _database.dailyLogDao.findDailyLogsByMonth(
       yearMonth,
     );
-    return count ?? 0;
+
+    return Future.wait(
+      entities.map((e) async {
+        final images = await _database.dailyLogDao.findImagesByLogId(e.id!);
+        return DailyLogRecord(
+          e.emotion,
+          e.memo,
+          date: e.date,
+          id: e.id,
+          images: images.map((i) => i.path).toList(),
+        );
+      }),
+    );
   }
 }

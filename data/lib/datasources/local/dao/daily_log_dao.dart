@@ -19,6 +19,11 @@ abstract class DailyLogDao {
   // --- Methods for Monthly Highlights ---
 
   @Query(
+    "SELECT * FROM DailyLogEntity WHERE strftime('%Y-%m', date / 1000, 'unixepoch') = :yearMonth ORDER BY date DESC",
+  )
+  Future<List<DailyLogEntity>> findDailyLogsByMonth(String yearMonth);
+
+  @Query(
     "SELECT COUNT(*) FROM DailyLogEntity WHERE strftime('%Y-%m', date / 1000, 'unixepoch') = :yearMonth AND emotion != ''",
   )
   Future<int?> countMoodEntriesForMonth(String yearMonth);
