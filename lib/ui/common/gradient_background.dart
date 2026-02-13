@@ -17,7 +17,9 @@ class GradientBackground extends ConsumerWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: brightness == Brightness.light ? currentTheme.gradientColors : currentTheme.darkGradientColors,
+          colors: brightness == Brightness.light
+              ? currentTheme.colorTheme.gradientColors
+              : currentTheme.colorTheme.darkGradientColors,
         ),
       ),
       child: child,

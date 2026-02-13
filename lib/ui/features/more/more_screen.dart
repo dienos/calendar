@@ -1,4 +1,4 @@
-import 'package:dienos_calendar/ui/common/glassy_container.dart';
+import 'package:dienos_calendar/ui/common/more_settings_tile.dart';
 import 'package:dienos_calendar/ui/common/gradient_background.dart';
 import 'package:dienos_calendar/ui/features/more/background_setting_screen.dart';
 import 'package:dienos_calendar/ui/theme/theme_controller.dart';
@@ -10,7 +10,8 @@ class MoreScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentTheme = ref.watch(themeControllerProvider);
+    final themeState = ref.watch(themeControllerProvider);
+    final currentTheme = themeState.colorTheme;
 
     return GradientBackground(
       child: Scaffold(
@@ -32,70 +33,106 @@ class MoreScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const BackgroundSettingScreen()));
-                },
-                child: GlassyContainer(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, shape: BoxShape.circle),
-                        child: Icon(Icons.palette, color: Theme.of(context).iconTheme.color, size: 20),
+              MoreSettingsTile(
+                icon: Icons.palette,
+                title: "배경색 설정",
+                trailing: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: Theme.of(context).brightness == Brightness.dark
+                          ? currentTheme.darkGradientColors
+                          : currentTheme.gradientColors,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? currentTheme.darkTextColor
+                          : Colors.white,
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            (Theme.of(context).brightness == Brightness.dark
+                                    ? currentTheme.darkActiveColor
+                                    : currentTheme.primaryColor)
+                                .withOpacity(0.3),
+                        blurRadius: 4,
+                        spreadRadius: 1,
                       ),
-                      const SizedBox(width: 14),
-                      Text(
-                        "배경색 설정",
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).textTheme.bodyLarge?.color,
-                        ),
-                      ),
-                      const Spacer(),
-                      // 현재 색상을 보여주는 작은 원
-                      Container(
-                        width: 16,
-                        height: 16,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: Theme.of(context).brightness == Brightness.dark
-                                ? currentTheme.darkGradientColors
-                                : currentTheme.gradientColors,
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? currentTheme.darkTextColor
-                                : Colors.white,
-                            width: 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color:
-                                  (Theme.of(context).brightness == Brightness.dark
-                                          ? currentTheme.darkActiveColor
-                                          : currentTheme.primaryColor)
-                                      .withOpacity(0.3),
-                              blurRadius: 4,
-                              spreadRadius: 1,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Icon(Icons.arrow_forward_ios, size: 14, color: Theme.of(context).iconTheme.color),
                     ],
                   ),
                 ),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const BackgroundSettingScreen()));
+                },
+              ),
+              const SizedBox(height: 12),
+              MoreSettingsTile(
+                icon: Icons.brightness_4,
+                title: "컬러 모드 설정",
+                trailing: Text(
+                  themeState.themeMode.label,
+                  style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.5)),
+                ),
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => _buildThemeModePicker(context, ref, themeState),
+                  );
+                },
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildThemeModePicker(BuildContext context, WidgetRef ref, ThemeState themeState) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("컬러 모드 선택", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 20),
+          ...AppThemeMode.values.map((mode) {
+            final isSelected = themeState.themeMode == mode;
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                mode == AppThemeMode.dark
+                    ? Icons.dark_mode
+                    : (mode == AppThemeMode.light ? Icons.light_mode : Icons.brightness_auto),
+                color: isSelected ? Theme.of(context).colorScheme.primary : null,
+              ),
+              title: Text(
+                mode.label,
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? Theme.of(context).colorScheme.primary : null,
+                ),
+              ),
+              trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
+              onTap: () {
+                ref.read(themeControllerProvider.notifier).changeThemeMode(mode);
+                Navigator.pop(context);
+              },
+            );
+          }),
+          const SizedBox(height: 20),
+        ],
       ),
     );
   }

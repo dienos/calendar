@@ -1,92 +1,160 @@
+import 'package:dienos_calendar/ui/theme/app_colors.dart';
 import 'package:dienos_calendar/utils/prefs_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+enum AppThemeMode {
+  system("시스템 설정", ThemeMode.system),
+  light("라이트 모드", ThemeMode.light),
+  dark("다크 모드", ThemeMode.dark);
+
+  final String label;
+  final ThemeMode mode;
+  const AppThemeMode(this.label, this.mode);
+}
+
 enum AppColorTheme {
   warmPink(
     "웜 핑크",
-    Color(0xFFF97A8D),
-    [Color(0xFFFDE8EC), Color(0xFFFDF0F2), Color(0xFFFFF6F7), Color(0xFFFFFBFB)],
-    Color(0xFFC2185B),
-    Color(0xFF880E4F),
-    Colors.white70,
-    // Dark Mode Colors
-    [Color(0xFF2C0E14), Color(0xFF4A192C)],
-    Color(0xFFEC407A), // Light Pink for Dark Mode
-    Colors.white,
+    AppColors.warmPinkPrimary,
+    AppColors.warmPinkGradients,
+    AppColors.warmPinkActive,
+    AppColors.warmPinkText,
+    AppColors.white70,
+    AppColors.warmPinkPrimaryDark,
+    AppColors.warmPinkGradientsDark,
+    AppColors.warmPinkActiveDark,
+    AppColors.warmPinkTextDark,
+    AppColors.warmPinkCard,
+    AppColors.warmPinkCardDark,
+    Color(0x20880E4F),
+    20.0,
+    8.0,
+    Color(0x60000000),
+    25.0,
+    10.0,
   ),
   softLemon(
     "소프트 레몬",
-    Color(0xFFFFF59D),
-    [Color(0xFFFFFDE7), Color(0xFFFFF9C4), Color(0xFFFFF59D), Color(0xFFFFF176)],
-    Color(0xFF4E342E), // 진한 고동색
-    Colors.black87,
-    Colors.white70,
-    // Dark Mode Colors
-    [Color(0xFF3E2723), Color(0xFF5D4037)],
-    Color(0xFFFFD54F), // Light Yellow for Dark Mode
-    Colors.white,
+    AppColors.softLemonPrimary,
+    AppColors.softLemonGradients,
+    AppColors.softLemonActive,
+    AppColors.softLemonText,
+    AppColors.white70,
+    AppColors.softLemonPrimaryDark,
+    AppColors.softLemonGradientsDark,
+    AppColors.softLemonActiveDark,
+    AppColors.softLemonTextDark,
+    AppColors.softLemonCard,
+    AppColors.softLemonCardDark,
+    Color(0x154E342E),
+    18.0,
+    6.0,
+    Color(0x50000000),
+    25.0,
+    10.0,
   ),
   skyBlue(
     "스카이 블루",
-    Color(0xFF64B5F6),
-    [Color(0xFFE3F2FD), Color(0xFFBBDEFB), Color(0xFF90CAF9), Color(0xFF64B5F6)],
-    Color(0xFF1565C0),
-    Color(0xFF0D47A1),
-    Colors.white70,
-    // Dark Mode Colors
-    [Color(0xFF0D47A1), Color(0xFF1976D2)], // Deep Blue
-    Color(0xFF64B5F6), // Light Blue for Dark Mode
-    Colors.white,
+    AppColors.skyBluePrimary,
+    AppColors.skyBlueGradients,
+    AppColors.skyBlueActive,
+    AppColors.skyBlueText,
+    AppColors.white70,
+    AppColors.skyBluePrimaryDark,
+    AppColors.skyBlueGradientsDark,
+    AppColors.skyBlueActiveDark,
+    AppColors.skyBlueTextDark,
+    AppColors.skyBlueCard,
+    AppColors.skyBlueCardDark,
+    Color(0x150D47A1),
+    20.0,
+    8.0,
+    Color(0x50000000),
+    25.0,
+    10.0,
   ),
   mintGreen(
     "민트 그린",
-    Color(0xFF81C784),
-    [Color(0xFFE8F5E9), Color(0xFFC8E6C9), Color(0xFFA5D6A7), Color(0xFF81C784)],
-    Color(0xFF2E7D32),
-    Color(0xFF1B5E20),
-    Colors.white70,
-    // Dark Mode Colors
-    [Color(0xFF1B5E20), Color(0xFF388E3C)], // Deep Green
-    Color(0xFFA5D6A7), // Light Green for Dark Mode
-    Colors.white,
+    AppColors.mintGreenPrimary,
+    AppColors.mintGreenGradients,
+    AppColors.mintGreenActive,
+    AppColors.mintGreenText,
+    AppColors.white70,
+    AppColors.mintGreenPrimaryDark,
+    AppColors.mintGreenGradientsDark,
+    AppColors.mintGreenActiveDark,
+    AppColors.mintGreenTextDark,
+    AppColors.mintGreenCard,
+    AppColors.mintGreenCardDark,
+    Color(0x151B5E20),
+    20.0,
+    8.0,
+    Color(0x50000000),
+    25.0,
+    10.0,
   ),
   lavender(
     "라벤더",
-    Color(0xFFBA68C8),
-    [Color(0xFFF3E5F5), Color(0xFFE1BEE7), Color(0xFFCE93D8), Color(0xFFBA68C8)],
-    Color(0xFF7B1FA2),
-    Color(0xFF4A148C),
-    Colors.white70,
-    // Dark Mode Colors
-    [Color(0xFF311B92), Color(0xFF512DA8)], // Deep Purple
-    Color(0xFFCE93D8), // Light Purple for Dark Mode
-    Colors.white,
+    AppColors.lavenderPrimary,
+    AppColors.lavenderGradients,
+    AppColors.lavenderActive,
+    AppColors.lavenderText,
+    AppColors.white70,
+    AppColors.lavenderPrimaryDark,
+    AppColors.lavenderGradientsDark,
+    AppColors.lavenderActiveDark,
+    AppColors.lavenderTextDark,
+    AppColors.lavenderCard,
+    AppColors.lavenderCardDark,
+    Color(0x204A148C),
+    20.0,
+    8.0,
+    Color(0x55000000),
+    25.0,
+    10.0,
   ),
   creamyWhite(
     "크리미 화이트",
-    Color(0xFFE0E0E0),
-    [Color(0xFFFAFAFA), Color(0xFFF5F5F5), Color(0xFFEEEEEE), Color(0xFFE0E0E0)],
-    Color(0xFF212121), // 더 진한 검정
-    Colors.black87,
-    Colors.white70,
-    // Dark Mode Colors
-    [Color(0xFF121212), Color(0xFF212121)], // Dark Grey
-    Color(0xFFE0E0E0), // Light Grey for Dark Mode
-    Colors.white,
+    AppColors.creamyWhitePrimary,
+    AppColors.creamyWhiteGradients,
+    AppColors.creamyWhiteActive,
+    AppColors.creamyWhiteText,
+    AppColors.white70,
+    AppColors.creamyWhitePrimaryDark,
+    AppColors.creamyWhiteGradientsDark,
+    AppColors.creamyWhiteActiveDark,
+    AppColors.creamyWhiteTextDark,
+    AppColors.creamyWhiteCard,
+    AppColors.creamyWhiteCardDark,
+    Color(0x15000000),
+    25.0,
+    10.0,
+    Color(0x60000000),
+    30.0,
+    12.0,
   );
 
   final String label;
-  final Color primaryColor; // 메인 테마 색상 (라이트 모드 기준)
+  final Color primaryColor;
   final List<Color> gradientColors;
   final Color activeColor;
   final Color textColor;
   final Color navUnselectedColor;
 
-  // Dark Mode Properties
+  final Color primaryColorDark;
   final List<Color> darkGradientColors;
   final Color darkActiveColor;
   final Color darkTextColor;
+  final Color cardColor;
+  final Color darkCardColor;
+
+  final Color shadowColor;
+  final double shadowBlur;
+  final double shadowY;
+  final Color darkShadowColor;
+  final double darkShadowBlur;
+  final double darkShadowY;
 
   const AppColorTheme(
     this.label,
@@ -95,9 +163,18 @@ enum AppColorTheme {
     this.activeColor,
     this.textColor,
     this.navUnselectedColor,
+    this.primaryColorDark,
     this.darkGradientColors,
     this.darkActiveColor,
     this.darkTextColor,
+    this.cardColor,
+    this.darkCardColor,
+    this.shadowColor,
+    this.shadowBlur,
+    this.shadowY,
+    this.darkShadowColor,
+    this.darkShadowBlur,
+    this.darkShadowY,
   );
 }
 
@@ -105,16 +182,36 @@ final initialThemeProvider = Provider<AppColorTheme>((ref) {
   return AppColorTheme.warmPink;
 });
 
-class ThemeController extends Notifier<AppColorTheme> {
-  @override
-  AppColorTheme build() {
-    return ref.watch(initialThemeProvider);
-  }
+final initialThemeModeProvider = Provider<AppThemeMode>((ref) {
+  return AppThemeMode.system;
+});
 
-  void changeTheme(AppColorTheme theme) {
-    state = theme;
-    PrefsUtils.setThemeName(theme.name);
+class ThemeState {
+  final AppColorTheme colorTheme;
+  final AppThemeMode themeMode;
+
+  ThemeState({required this.colorTheme, required this.themeMode});
+
+  ThemeState copyWith({AppColorTheme? colorTheme, AppThemeMode? themeMode}) {
+    return ThemeState(colorTheme: colorTheme ?? this.colorTheme, themeMode: themeMode ?? this.themeMode);
   }
 }
 
-final themeControllerProvider = NotifierProvider<ThemeController, AppColorTheme>(ThemeController.new);
+class ThemeController extends Notifier<ThemeState> {
+  @override
+  ThemeState build() {
+    return ThemeState(colorTheme: ref.watch(initialThemeProvider), themeMode: ref.watch(initialThemeModeProvider));
+  }
+
+  void changeTheme(AppColorTheme theme) {
+    state = state.copyWith(colorTheme: theme);
+    PrefsUtils.setThemeName(theme.name);
+  }
+
+  void changeThemeMode(AppThemeMode mode) {
+    state = state.copyWith(themeMode: mode);
+    PrefsUtils.setThemeMode(mode.name);
+  }
+}
+
+final themeControllerProvider = NotifierProvider<ThemeController, ThemeState>(ThemeController.new);

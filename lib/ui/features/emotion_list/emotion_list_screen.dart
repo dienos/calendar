@@ -30,13 +30,16 @@ class _EmotionListScreenState extends ConsumerState<EmotionListScreen> {
     '매우 나쁨': 'assets/svgs/emotion_very_bad.svg',
   };
 
-  final Map<String, Color> _emotionColors = {
-    '매우 좋음': const Color(0xFF00C896),
-    '좋음': const Color(0xFF00C896),
-    '보통': Colors.grey,
-    '나쁨': Colors.orangeAccent,
-    '매우 나쁨': Colors.redAccent,
-  };
+  Map<String, Color> _emotionColors(BuildContext context) {
+    final theme = Theme.of(context);
+    return {
+      '매우 좋음': theme.colorScheme.primary,
+      '좋음': theme.colorScheme.primary.withOpacity(0.8),
+      '보통': theme.colorScheme.onSurface.withOpacity(0.4),
+      '나쁨': theme.colorScheme.secondary,
+      '매우 나쁨': theme.colorScheme.secondary.withOpacity(0.8),
+    };
+  }
 
   final Map<String, String> _emotionTitles = {
     '매우 좋음': '최고의 하루!',
@@ -118,7 +121,7 @@ class _EmotionListScreenState extends ConsumerState<EmotionListScreen> {
                   return _TimelinePage(
                     month: _months[index],
                     emotionIcons: _emotionIcons,
-                    emotionColors: _emotionColors,
+                    emotionColors: _emotionColors(context),
                     emotionTitles: _emotionTitles,
                   );
                 },
@@ -143,23 +146,27 @@ class _EmotionListScreenState extends ConsumerState<EmotionListScreen> {
           final month = _months[index];
           final isSelected = index == _currentIndex;
 
-          return GestureDetector(
-            onTap: () => _onMonthSelected(index),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isSelected ? theme.colorScheme.primary.withOpacity(0.2) : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
-                border: isSelected ? Border.all(color: theme.colorScheme.primary.withOpacity(0.5)) : null,
-              ),
-              child: Center(
-                child: Text(
-                  "${month.month}월",
-                  style: TextStyle(
-                    color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface.withOpacity(0.5),
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    fontSize: 14,
+          return Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => _onMonthSelected(index),
+              borderRadius: BorderRadius.circular(20),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? theme.colorScheme.primary.withOpacity(0.2) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  border: isSelected ? Border.all(color: theme.colorScheme.primary.withOpacity(0.5)) : null,
+                ),
+                child: Center(
+                  child: Text(
+                    "${month.month}월",
+                    style: TextStyle(
+                      color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface.withOpacity(0.5),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ),
@@ -260,55 +267,26 @@ class _TimelinePage extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Date Header
-                          Row(
-                            children: [
-                              Text(
-                                DateFormat('MM월 dd일 EEEE', 'ko_KR').format(log.date ?? DateTime.now()),
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: theme.colorScheme.onSurface, // 텍스트 색상 테마 따름
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                DateFormat('a h:mm', 'ko_KR').format(log.date ?? DateTime.now()),
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurface.withOpacity(0.5),
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                          Text(
+                            DateFormat('MM월 dd일 EEEE', 'ko_KR').format(log.date ?? DateTime.now()),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: accentColor.withOpacity(0.9),
+                              fontSize: 14,
+                            ),
                           ),
                           const SizedBox(height: 8),
-                          // Card with Glassy effect
                           GlassyContainer(
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  title,
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    color: accentColor,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  log.memo.isNotEmpty ? log.memo : "작성된 메모가 없습니다.",
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.onSurface.withOpacity(0.8),
-                                    fontSize: 14,
-                                    height: 1.5,
-                                  ),
-                                  maxLines: 5,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
+                            color: accentColor,
+                            child: Text(
+                              title,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: accentColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
                         ],

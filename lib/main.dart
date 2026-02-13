@@ -11,32 +11,37 @@ void main() async {
 
   await PrefsUtils.init();
   final themeName = PrefsUtils.getThemeName();
+  final savedTheme = AppColorTheme.values.firstWhere((e) => e.name == themeName, orElse: () => AppColorTheme.warmPink);
 
-  final savedTheme = AppColorTheme.values.firstWhere(
-    (e) => e.name == themeName, // name 비교 (enum name은 저장 시 사용된 name)
-    orElse: () => AppColorTheme.warmPink,
+  final themeModeName = PrefsUtils.getThemeMode();
+  final savedThemeMode = AppThemeMode.values.firstWhere(
+    (e) => e.name == themeModeName,
+    orElse: () => AppThemeMode.system,
   );
 
-  runApp(ProviderScope(overrides: [initialThemeProvider.overrideWithValue(savedTheme)], child: const MyApp()));
+  runApp(
+    ProviderScope(
+      overrides: [
+        initialThemeProvider.overrideWithValue(savedTheme),
+        initialThemeModeProvider.overrideWithValue(savedThemeMode),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
-// ConsumerWidget으로 변경하여 테마 변경을 감지해야 함
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 테마 컨트롤러의 상태(현재 선택된 테마)를 구독
     final currentTheme = ref.watch(themeControllerProvider);
 
     return MaterialApp(
       title: 'Dienos Calendar',
-      theme: AppTheme.getTheme(currentTheme), // 동적 테마 적용
-      // Dark Theme도 필요하다면 getDarkTheme(currentTheme) 등을 만들어야 함.
-      // 일단은 기본 DarkTheme 사용하거나 LightTheme 강제.
-      darkTheme: AppTheme.getDarkTheme(currentTheme),
-      themeMode: ThemeMode.system, // 시스템 설정 따름
-
+      theme: AppTheme.getTheme(currentTheme.colorTheme),
+      darkTheme: AppTheme.getDarkTheme(currentTheme.colorTheme),
+      themeMode: currentTheme.themeMode.mode,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

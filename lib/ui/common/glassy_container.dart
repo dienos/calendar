@@ -1,3 +1,4 @@
+import 'package:dienos_calendar/ui/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class GlassyContainer extends StatelessWidget {
@@ -6,6 +7,7 @@ class GlassyContainer extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
   final double? width;
   final double? height;
+  final Color? color;
   final BorderRadiusGeometry? borderRadius;
 
   const GlassyContainer({
@@ -15,6 +17,7 @@ class GlassyContainer extends StatelessWidget {
     this.margin,
     this.width,
     this.height,
+    this.color,
     this.borderRadius,
   });
 
@@ -22,6 +25,7 @@ class GlassyContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final shadowTheme = theme.extension<AppShadowTheme>();
 
     return Container(
       width: width,
@@ -29,13 +33,29 @@ class GlassyContainer extends StatelessWidget {
       margin: margin,
       padding: padding,
       decoration: BoxDecoration(
-        // 다크모드일 때는 좀 더 불투명하게, 라이트모드일 때는 투명하게
-        color: isDark ? theme.cardColor.withOpacity(0.6) : Colors.white.withOpacity(0.55),
+        color:
+            color ?? theme.cardTheme.color ?? (isDark ? Colors.black.withOpacity(0.6) : Colors.white.withOpacity(0.5)),
         borderRadius: borderRadius ?? BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, 6), spreadRadius: 0),
+          if (shadowTheme != null)
+            BoxShadow(
+              color: shadowTheme.color,
+              blurRadius: shadowTheme.blur,
+              offset: Offset(0, shadowTheme.y),
+              spreadRadius: 0,
+            )
+          else
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+              spreadRadius: 0,
+            ),
         ],
-        border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.6), width: 1.0),
+        border: Border.all(
+          color: color?.withOpacity(0.25) ?? (isDark ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.6)),
+          width: 1.0,
+        ),
       ),
       child: child,
     );

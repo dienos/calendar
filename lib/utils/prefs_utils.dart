@@ -17,6 +17,16 @@ class PrefsUtils {
     await _prefs.setString(_keyTheme, themeName);
   }
 
+  static const String _keyThemeMode = 'theme_mode';
+
+  static String? getThemeMode() {
+    return _prefs.getString(_keyThemeMode);
+  }
+
+  static Future<void> setThemeMode(String themeMode) async {
+    await _prefs.setString(_keyThemeMode, themeMode);
+  }
+
   static String? getString(String key) => _prefs.getString(key);
   static Future<void> setString(String key, String value) => _prefs.setString(key, value);
 

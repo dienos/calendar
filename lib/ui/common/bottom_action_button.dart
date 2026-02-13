@@ -32,9 +32,9 @@ class BottomActionButton extends StatelessWidget {
         onPressed: isDisabled ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: bgColor,
-          disabledBackgroundColor: Colors.grey[300],
+          disabledBackgroundColor: theme.colorScheme.onSurface.withOpacity(0.1),
           foregroundColor: txtColor,
-          disabledForegroundColor: Colors.grey[500],
+          disabledForegroundColor: theme.colorScheme.onSurface.withOpacity(0.3),
           elevation: isDisabled ? 0 : 4,
           shadowColor: bgColor.withOpacity(0.3),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

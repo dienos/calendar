@@ -22,6 +22,22 @@ class CalendarView extends ConsumerWidget {
     final theme = Theme.of(context);
     final today = DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
+    void handleDayTap(DateTime day) {
+      if (day.isAfter(today)) {
+        showAppSnackBar(context, "이날은 오리라...");
+        return;
+      }
+
+      calendarViewModel.onDaySelected(day, day);
+
+      final events = calendarViewModel.getEventsForDay(day);
+      if (events.isNotEmpty) {
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => DailyLogDetailScreen(date: day)));
+      } else {
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddDailyLogScreen(selectedDate: day)));
+      }
+    }
+
     String? getDisplaySvgPathForDay(DateTime day) {
       final events = calendarViewModel.getEventsForDay(day);
       final firstLog = events.whereType<DailyLogRecord>().firstOrNull;
@@ -39,31 +55,39 @@ class CalendarView extends ConsumerWidget {
       return Container(
         margin: const EdgeInsets.all(4.0),
         decoration: decoration,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '${day.day}',
-                style: isToday
-                    ? theme.textTheme.bodyMedium!.copyWith(color: theme.colorScheme.primary)
-                    : theme.textTheme.bodyMedium,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => handleDayTap(day),
+            borderRadius: BorderRadius.circular(12),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${day.day}',
+                    style: isToday
+                        ? theme.textTheme.bodyMedium!.copyWith(color: theme.colorScheme.primary)
+                        : theme.textTheme.bodyMedium,
+                  ),
+                  SizedBox(
+                    height: 24.0,
+                    child: Center(
+                      child: svgPath != null
+                          ? SvgPicture.asset(svgPath, width: 22, height: 22)
+                          : SvgPicture.asset("assets/svgs/empty.svg", width: 22, height: 22),
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(
-                height: 24.0,
-                child: Center(
-                  child: svgPath != null
-                      ? SvgPicture.asset(svgPath, width: 22, height: 22)
-                      : SvgPicture.asset("assets/svgs/empty.svg", width: 22, height: 22),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       );
     }
 
     return GlassyContainer(
+      color: theme.colorScheme.surface,
       borderRadius: BorderRadius.circular(30),
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
       child: TableCalendar(
@@ -77,28 +101,6 @@ class CalendarView extends ConsumerWidget {
         headerVisible: false,
         daysOfWeekVisible: true,
         calendarFormat: CalendarFormat.month,
-        onDaySelected: (selectedDay, focusedDay) {
-          final today = DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-
-          if (selectedDay.isAfter(today)) {
-            showAppSnackBar(context, "이날은 오리라...");
-            return;
-          }
-
-          calendarViewModel.onDaySelected(selectedDay, focusedDay);
-
-          final events = calendarViewModel.getEventsForDay(selectedDay);
-
-          if (events.isNotEmpty) {
-            Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (context) => DailyLogDetailScreen(date: selectedDay)));
-          } else {
-            Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (context) => AddDailyLogScreen(selectedDate: selectedDay)));
-          }
-        },
         onPageChanged: (focusedDay) {
           calendarViewModel.onPageChanged(focusedDay);
         },
@@ -124,13 +126,7 @@ class CalendarView extends ConsumerWidget {
             );
           },
           selectedBuilder: (context, day, focusedDay) {
-            return buildCalendarDay(
-              day,
-              decoration: BoxDecoration(
-                border: Border.all(color: theme.colorScheme.primary, width: 2.0),
-                borderRadius: BorderRadius.circular(12),
-              ),
-            );
+            return buildCalendarDay(day, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)));
           },
           outsideBuilder: (context, day, focusedDay) {
             return Center(

@@ -177,43 +177,52 @@ class _EmotionSelector extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: emotions.map((emotion) {
           final isSelected = selectedEmotion == emotion['label'];
-          return GestureDetector(
-            onTap: () => onSelectEmotion(emotion['label']!),
-            child: Column(
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 52,
-                  height: 52,
-                  transform: Matrix4.identity()..scale(isSelected ? 1.15 : 1.0),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isSelected
-                        ? theme.colorScheme.primary.withOpacity(0.2)
-                        : (theme.brightness == Brightness.dark ? Colors.grey[800] : Colors.white),
-                    border: Border.all(color: isSelected ? theme.colorScheme.primary : Colors.transparent, width: 2.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: isSelected ? theme.colorScheme.primary.withOpacity(0.4) : Colors.black.withOpacity(0.1),
-                        blurRadius: isSelected ? 10 : 5,
-                        spreadRadius: isSelected ? 1 : 0,
-                        offset: const Offset(0, 3),
+          return Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => onSelectEmotion(emotion['label']!),
+              borderRadius: BorderRadius.circular(26),
+              child: Column(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 52,
+                    height: 52,
+                    transform: Matrix4.identity()..scale(isSelected ? 1.15 : 1.0),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isSelected ? theme.colorScheme.primary.withOpacity(0.2) : theme.colorScheme.surface,
+                      border: Border.all(
+                        color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface.withOpacity(0.1),
+                        width: 2.5,
                       ),
-                    ],
+                      boxShadow: [
+                        BoxShadow(
+                          color: isSelected
+                              ? theme.colorScheme.primary.withOpacity(0.4)
+                              : Colors.black.withOpacity(0.1),
+                          blurRadius: isSelected ? 10 : 5,
+                          spreadRadius: isSelected ? 1 : 0,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Center(child: SvgPicture.asset(emotion['svgPath']!, width: 32, height: 32)),
                   ),
-                  child: Center(child: SvgPicture.asset(emotion['svgPath']!, width: 32, height: 32)),
-                ),
-                const SizedBox(height: 8),
-                AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 200),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? theme.colorScheme.primary : theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                  const SizedBox(height: 8),
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 200),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected
+                          ? theme.colorScheme.primary
+                          : theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                    ),
+                    child: Text(emotion['label']!),
                   ),
-                  child: Text(emotion['label']!),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         }).toList(),
@@ -293,30 +302,34 @@ class _PhotoAttachment extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 12),
-        GestureDetector(
-          onTap: () async {
-            final result = await viewModel.addImage();
-            if (!context.mounted) return;
-            if (result == PermissionResult.permanentlyDenied) {
-              showAppSnackBar(context, '설정에서 사진 접근 권한을 허용해주세요.');
-              openAppSettings();
-            } else if (result == PermissionResult.denied) {
-              showAppSnackBar(context, '사진 접근 권한이 필요합니다.');
-            }
-          },
-          child: GlassyContainer(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.add_circle_outline, color: theme.colorScheme.primary, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  '사진 추가하기',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
-                ),
-              ],
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () async {
+              final result = await viewModel.addImage();
+              if (!context.mounted) return;
+              if (result == PermissionResult.permanentlyDenied) {
+                showAppSnackBar(context, '설정에서 사진 접근 권한을 허용해주세요.');
+                openAppSettings();
+              } else if (result == PermissionResult.denied) {
+                showAppSnackBar(context, '사진 접근 권한이 필요합니다.');
+              }
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: GlassyContainer(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_circle_outline, color: theme.colorScheme.primary, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    '사진 추가하기',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -339,12 +352,16 @@ class _PhotoAttachment extends ConsumerWidget {
                 Positioned(
                   top: 10,
                   right: 10,
-                  child: GestureDetector(
-                    onTap: () => viewModel.removeImage(idx),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(color: Colors.black.withOpacity(0.5), shape: BoxShape.circle),
-                      child: const Icon(Icons.close, color: Colors.white, size: 18),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => viewModel.removeImage(idx),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(color: Colors.black.withOpacity(0.5), shape: BoxShape.circle),
+                        child: const Icon(Icons.close, color: Colors.white, size: 18),
+                      ),
                     ),
                   ),
                 ),

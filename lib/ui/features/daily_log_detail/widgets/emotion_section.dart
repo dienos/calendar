@@ -26,8 +26,8 @@ class EmotionSection extends StatelessWidget {
               const SizedBox(height: 16),
               Chip(
                 label: Text(emotion, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary)),
-                backgroundColor: Colors.white,
-                side: BorderSide(color: theme.colorScheme.primary.withOpacity(0.5)),
+                backgroundColor: theme.colorScheme.surface,
+                side: BorderSide(color: theme.colorScheme.primary.withOpacity(0.3)),
               ),
             ],
           ),

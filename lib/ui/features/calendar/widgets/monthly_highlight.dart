@@ -19,7 +19,7 @@ class MonthlyHighlight extends ConsumerWidget {
       cards.add(
         StatCard(
           icon: Icons.favorite,
-          iconColor: Colors.pinkAccent,
+          iconColor: theme.colorScheme.primary,
           title: "기분 입력",
           count: "${stats.moodEntries}회",
           subtitle: "이번 달 꾸준히 기록하셨네요!",
@@ -36,7 +36,7 @@ class MonthlyHighlight extends ConsumerWidget {
       cards.add(
         StatCard(
           icon: Icons.drive_file_rename_outline,
-          iconColor: Colors.orangeAccent,
+          iconColor: theme.colorScheme.secondary,
           title: "메모 작성",
           count: "${stats.memoEntries}개",
           subtitle: "솔직한 마음들을 많이 담았어요",
@@ -47,7 +47,7 @@ class MonthlyHighlight extends ConsumerWidget {
       cards.add(
         StatCard(
           icon: Icons.camera_alt,
-          iconColor: Colors.redAccent,
+          iconColor: theme.colorScheme.primary.withRed(255),
           title: "사진 등록",
           count: "${stats.photoEntries}장",
           subtitle: "소중한 순간들을 포착했어요",
@@ -67,7 +67,7 @@ class MonthlyHighlight extends ConsumerWidget {
           child: Text(
             "이달의 하이라이트",
             style: theme.textTheme.titleMedium?.copyWith(
-              color: const Color(0xFF6B6B6B),
+              color: theme.colorScheme.primary,
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),

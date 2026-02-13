@@ -31,12 +31,26 @@ class TodaysHighlight extends ConsumerWidget {
       children: [
         Text(
           "오늘의 하이라이트",
-          style: theme.textTheme.labelMedium!.copyWith(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7)),
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(20.0),
-          decoration: BoxDecoration(color: theme.cardTheme.color, borderRadius: BorderRadius.circular(30)),
+          decoration: BoxDecoration(
+            color: theme.cardTheme.color,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(theme.brightness == Brightness.dark ? 0.3 : 0.08),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
           child: Row(
             children: [
               Container(

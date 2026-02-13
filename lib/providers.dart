@@ -122,6 +122,9 @@ class MonthlyStatsViewModel extends StateNotifier<MonthlyStats> {
   }
 
   Future<void> fetchStats() async {
-    state = await _getMonthlyStatsUseCase(_month);
+    final stats = await _getMonthlyStatsUseCase(_month);
+    if (mounted) {
+      state = stats;
+    }
   }
 }

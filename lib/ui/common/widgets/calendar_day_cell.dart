@@ -21,15 +21,10 @@ class CalendarDayCell extends StatelessWidget {
     final theme = Theme.of(context);
 
     Color getBackgroundColor() {
-      // The styling now ONLY depends on whether it's today or a future date.
-      // The isSelected flag is completely ignored.
       if (isToday) {
         return theme.colorScheme.primary.withOpacity(0.2);
       }
-      if (isFuture) {
-        return Colors.grey.shade100;
-      }
-      return Colors.grey.shade200;
+      return theme.colorScheme.onSurface.withOpacity(0.05);
     }
 
     return Column(
@@ -38,13 +33,7 @@ class CalendarDayCell extends StatelessWidget {
         Container(
           width: 40,
           height: 40,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            // The border is always null. No change on click.
-            border: null, 
-            // The background color no longer changes on click.
-            color: getBackgroundColor(), 
-          ),
+          decoration: BoxDecoration(shape: BoxShape.circle, border: null, color: getBackgroundColor()),
           child: Center(child: circleContent),
         ),
         const SizedBox(height: 4),
@@ -53,10 +42,10 @@ class CalendarDayCell extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             color: isFuture
-                ? Colors.grey.shade400
+                ? theme.colorScheme.onSurface.withOpacity(0.3)
                 : isToday
-                    ? theme.colorScheme.primary
-                    : Colors.black87,
+                ? theme.colorScheme.primary
+                : theme.colorScheme.onSurface,
             fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
           ),
         ),
