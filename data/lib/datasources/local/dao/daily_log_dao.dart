@@ -13,6 +13,9 @@ abstract class DailyLogDao {
   @insert
   Future<int> insertDailyLog(DailyLogEntity dailyLog);
 
+  @Update(onConflict: OnConflictStrategy.replace)
+  Future<void> updateDailyLog(DailyLogEntity dailyLog);
+
   // --- Methods for Monthly Highlights ---
 
   @Query(

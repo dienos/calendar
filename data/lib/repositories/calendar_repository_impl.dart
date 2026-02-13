@@ -74,6 +74,67 @@ class CalendarRepositoryImpl implements CalendarRepository {
     }
   }
 
+  @override
+  Future<void> updateEvent(DateTime date, DailyRecord updatedRecord) async {
+    if (_database == null) {
+      return;
+    }
+
+    final existingLog = await _database!.dailyLogDao.findDailyLogByDate(date);
+
+    if (existingLog == null) {
+      // 데이터가 없으면 새로 추가
+      await addEvent(date, updatedRecord);
+      return;
+    }
+
+    if (updatedRecord is DailyLogRecord) {
+      // 1. DailyLog 내용 업데이트
+      final updatedEntity = DailyLogEntity(
+        id: existingLog.id, // 기존 ID 유지
+        emotion: updatedRecord.emotion,
+        memo: updatedRecord.memo,
+        date: date,
+      );
+      await _database!.dailyLogDao.updateDailyLog(updatedEntity);
+
+      // 2. 이미지 업데이트 (기존 연결 삭제 후 재등록)
+      if (existingLog.id != null) {
+        await _database!.imageDao.deleteImagesByDailyLogId(existingLog.id!);
+
+        if (updatedRecord.images.isNotEmpty) {
+          final appDir = await _getAppImageDirectory();
+
+          for (int i = 0; i < updatedRecord.images.length; i++) {
+            final imagePath = updatedRecord.images[i];
+            final sourceFile = File(imagePath);
+            String finalPath = imagePath;
+
+            // 앱 내부 저장소 경로에 없는 파일(=새로 추가된 파일)만 복사
+            // 기존 파일 path에는 이미 앱 내부 경로가 포함되어 있음
+            if (!imagePath.contains(appDir.path) && await sourceFile.exists()) {
+              final fileName =
+                  '${existingLog.id}_${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
+              final savedFile = await sourceFile.copy(
+                '${appDir.path}/$fileName',
+              );
+              finalPath = savedFile.path;
+            } else if (!await sourceFile.exists()) {
+              // 파일이 실제로 존재하지 않으면 DB에 추가하지 않음 (예외 처리)
+              continue;
+            }
+
+            final imageEntity = ImageEntity(
+              dailyLogId: existingLog.id!,
+              path: finalPath,
+            );
+            await _database!.imageDao.insertImage(imageEntity);
+          }
+        }
+      }
+    }
+  }
+
   Future<Directory> _getAppImageDirectory() async {
     final docDir = await getApplicationDocumentsDirectory();
     final imageDir = Directory('${docDir.path}/images');

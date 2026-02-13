@@ -12,6 +12,8 @@ import 'package:domain/usecases/add_event_usecase.dart';
 import 'package:domain/usecases/get_events_usecase.dart';
 import 'ui/features/add_daily_log/add_daily_log_screen_view_model.dart';
 import 'ui/features/calendar/calendar_view_model.dart';
+import 'package:domain/usecases/update_event_usecase.dart';
+import 'package:domain/usecases/get_events_usecase.dart';
 
 // --- Composition Root ---
 
@@ -32,7 +34,7 @@ final calendarRepositoryProvider = Provider<CalendarRepository>((ref) {
 
 final dailyLogRepositoryProvider = Provider<DailyLogRepository>((ref) {
   final database = ref.watch(appDatabaseProvider);
-  
+
   return database.when(
     data: (db) => DailyLogRepositoryImpl(db),
     loading: () => DailyLogRepositoryImpl(null),
@@ -51,6 +53,11 @@ final addEventUseCaseProvider = Provider<AddEventUseCase>((ref) {
   return AddEventUseCase(repository);
 });
 
+final updateEventUseCaseProvider = Provider<UpdateEventUseCase>((ref) {
+  final repository = ref.watch(calendarRepositoryProvider);
+  return UpdateEventUseCase(repository);
+});
+
 final getMonthlyStatsUseCaseProvider = Provider<GetMonthlyStatsUseCase>((ref) {
   final repository = ref.watch(calendarRepositoryProvider);
   return GetMonthlyStatsUseCase(repository);
@@ -62,47 +69,41 @@ final getDailyLogDetailUseCaseProvider = Provider<GetDailyLogDetailUseCase>((ref
 });
 
 // 3. UseCases -> ViewModel / Screen Data
-final calendarViewModelProvider =
-    StateNotifierProvider<CalendarViewModel, CalendarState>((ref) {
+final calendarViewModelProvider = StateNotifierProvider<CalendarViewModel, CalendarState>((ref) {
   final getEvents = ref.watch(getEventsUseCaseProvider);
   final addEvent = ref.watch(addEventUseCaseProvider);
   final now = DateTime.now();
-  return CalendarViewModel(
-      getEvents,
-      addEvent,
-      CalendarState(
-        selectedDay: now,
-        focusedDay: now,
-        events: {},
-      ));
+  return CalendarViewModel(getEvents, addEvent, CalendarState(selectedDay: now, focusedDay: now, events: {}));
 });
 
-final addDailyLogViewModelProvider = StateNotifierProvider.family<
-    AddDailyLogViewModel, AddDailyLogState, DateTime>((ref, selectedDate) {
+final addDailyLogViewModelProvider = StateNotifierProvider.family<AddDailyLogViewModel, AddDailyLogState, DateTime>((
+  ref,
+  selectedDate,
+) {
   final addEventUseCase = ref.watch(addEventUseCaseProvider);
-  return AddDailyLogViewModel(ref, selectedDate, addEventUseCase);
+  final updateEventUseCase = ref.watch(updateEventUseCaseProvider);
+  return AddDailyLogViewModel(ref, selectedDate, addEventUseCase, updateEventUseCase);
 });
 
-final monthlyStatsProvider = StateNotifierProvider.autoDispose
-    .family<MonthlyStatsViewModel, MonthlyStats, DateTime>((ref, month) {
+final monthlyStatsProvider = StateNotifierProvider.autoDispose.family<MonthlyStatsViewModel, MonthlyStats, DateTime>((
+  ref,
+  month,
+) {
   final getMonthlyStatsUseCase = ref.watch(getMonthlyStatsUseCaseProvider);
   return MonthlyStatsViewModel(month, getMonthlyStatsUseCase);
 });
 
 // New, simplified provider for the detail screen
-final dailyLogDetailProvider = FutureProvider.autoDispose
-    .family<DailyLogRecord?, DateTime>((ref, date) async {
+final dailyLogDetailProvider = FutureProvider.autoDispose.family<DailyLogRecord?, DateTime>((ref, date) async {
   final useCase = ref.watch(getDailyLogDetailUseCaseProvider);
   return useCase(date);
 });
-
 
 class MonthlyStatsViewModel extends StateNotifier<MonthlyStats> {
   final DateTime _month;
   final GetMonthlyStatsUseCase _getMonthlyStatsUseCase;
 
-  MonthlyStatsViewModel(this._month, this._getMonthlyStatsUseCase)
-      : super(const MonthlyStats()) {
+  MonthlyStatsViewModel(this._month, this._getMonthlyStatsUseCase) : super(const MonthlyStats()) {
     fetchStats();
   }
 

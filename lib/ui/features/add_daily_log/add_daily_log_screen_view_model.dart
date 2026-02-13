@@ -4,6 +4,7 @@ import 'package:dienos_calendar/providers.dart';
 import 'package:dienos_calendar/utils/permission_helper.dart';
 import 'package:domain/entities/daily_log_record.dart';
 import 'package:domain/usecases/add_event_usecase.dart';
+import 'package:domain/usecases/update_event_usecase.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -22,6 +23,7 @@ class AddDailyLogState {
   final String memo;
   final List<File> images;
   final bool isLoading;
+  final bool isEditMode;
 
   const AddDailyLogState({
     required this.selectedDate,
@@ -29,6 +31,7 @@ class AddDailyLogState {
     this.memo = '',
     this.images = const [],
     this.isLoading = false,
+    this.isEditMode = false,
   });
 
   AddDailyLogState copyWith({
@@ -37,6 +40,7 @@ class AddDailyLogState {
     String? memo,
     List<File>? images,
     bool? isLoading,
+    bool? isEditMode,
   }) {
     return AddDailyLogState(
       selectedDate: selectedDate ?? this.selectedDate,
@@ -44,12 +48,13 @@ class AddDailyLogState {
       memo: memo ?? this.memo,
       images: images ?? this.images,
       isLoading: isLoading ?? this.isLoading,
+      isEditMode: isEditMode ?? this.isEditMode,
     );
   }
 
   @override
   String toString() {
-    return 'AddDailyLogState(selectedDate: $selectedDate, selectedEmotion: $selectedEmotion, memo: $memo, images: $images, isLoading: $isLoading)';
+    return 'AddDailyLogState(selectedDate: $selectedDate, selectedEmotion: $selectedEmotion, memo: $memo, images: $images, isLoading: $isLoading, isEditMode: $isEditMode)';
   }
 
   @override
@@ -61,22 +66,35 @@ class AddDailyLogState {
         other.selectedEmotion == selectedEmotion &&
         other.memo == memo &&
         listEquals(other.images, images) &&
-        other.isLoading == isLoading;
+        other.isLoading == isLoading &&
+        other.isEditMode == isEditMode;
   }
 
   @override
   int get hashCode {
-    return Object.hash(selectedDate, selectedEmotion, memo, images, isLoading);
+    return Object.hash(selectedDate, selectedEmotion, memo, images, isLoading, isEditMode);
   }
 }
 
 class AddDailyLogViewModel extends StateNotifier<AddDailyLogState> {
   final Ref _ref;
   final AddEventUseCase _addEventUseCase;
+  final UpdateEventUseCase _updateEventUseCase;
   final _picker = ImagePicker();
 
-  AddDailyLogViewModel(this._ref, DateTime selectedDate, this._addEventUseCase)
+  AddDailyLogViewModel(this._ref, DateTime selectedDate, this._addEventUseCase, this._updateEventUseCase)
     : super(AddDailyLogState(selectedDate: selectedDate));
+
+  void loadInitialData(DailyLogRecord record) {
+    if (state.isEditMode) return;
+
+    state = state.copyWith(
+      selectedEmotion: record.emotion,
+      memo: record.memo,
+      images: record.images.map((path) => File(path)).toList(),
+      isEditMode: true,
+    );
+  }
 
   void selectEmotion(String emotion) {
     state = state.copyWith(selectedEmotion: emotion);
@@ -121,8 +139,17 @@ class AddDailyLogViewModel extends StateNotifier<AddDailyLogState> {
         state.memo,
         images: state.images.map((f) => f.path).toList(),
       );
-      await _addEventUseCase(state.selectedDate, record);
+
+      if (state.isEditMode) {
+        await _updateEventUseCase(state.selectedDate, record);
+      } else {
+        await _addEventUseCase(state.selectedDate, record);
+      }
+
       _ref.invalidate(calendarViewModelProvider);
+      // 상세 화면도 갱신
+      _ref.invalidate(dailyLogDetailProvider(state.selectedDate));
+
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {

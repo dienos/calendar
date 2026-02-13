@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'widgets/emotion_section.dart';
 import 'widgets/memo_section.dart';
 import 'widgets/photo_section.dart';
+import '../add_daily_log/add_daily_log_screen.dart';
 
 class DailyLogDetailScreen extends ConsumerWidget {
   final DateTime date;
@@ -25,7 +26,19 @@ class DailyLogDetailScreen extends ConsumerWidget {
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
-              child: TextButton(onPressed: () {}, child: const Text('수정하기')),
+              child: TextButton(
+                onPressed: () {
+                  final dailyLog = dailyLogAsync.value;
+                  if (dailyLog != null) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AddDailyLogScreen(selectedDate: date, initialRecord: dailyLog),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('수정하기'),
+              ),
             ),
           ],
         ),

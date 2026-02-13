@@ -5,6 +5,8 @@ abstract class CalendarRepository {
 
   Future<void> addEvent(DateTime date, DailyRecord newRecord);
 
+  Future<void> updateEvent(DateTime date, DailyRecord updatedRecord);
+
   // --- New Methods for Monthly Highlights ---
   Future<int> countMoodEntriesForMonth(String yearMonth);
 

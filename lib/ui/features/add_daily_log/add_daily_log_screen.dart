@@ -12,24 +12,53 @@ import 'package:dienos_calendar/utils/permission_helper.dart';
 import 'package:dienos_calendar/utils/ui_utils.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:dienos_calendar/ui/common/bottom_action_button.dart';
+import 'package:domain/entities/daily_log_record.dart';
 import 'add_daily_log_screen_view_model.dart';
 
-class AddDailyLogScreen extends ConsumerWidget {
+class AddDailyLogScreen extends ConsumerStatefulWidget {
   final DateTime selectedDate;
+  final DailyLogRecord? initialRecord;
 
-  const AddDailyLogScreen({super.key, required this.selectedDate});
+  const AddDailyLogScreen({super.key, required this.selectedDate, this.initialRecord});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(addDailyLogViewModelProvider(selectedDate));
-    final viewModel = ref.read(addDailyLogViewModelProvider(selectedDate).notifier);
+  ConsumerState<AddDailyLogScreen> createState() => _AddDailyLogScreenState();
+}
+
+class _AddDailyLogScreenState extends ConsumerState<AddDailyLogScreen> {
+  late TextEditingController _memoController;
+
+  @override
+  void initState() {
+    super.initState();
+    _memoController = TextEditingController();
+
+    if (widget.initialRecord != null) {
+      _memoController.text = widget.initialRecord!.memo;
+      Future.microtask(() {
+        ref.read(addDailyLogViewModelProvider(widget.selectedDate).notifier)
+           .loadInitialData(widget.initialRecord!);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _memoController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(addDailyLogViewModelProvider(widget.selectedDate));
+    final viewModel = ref.read(addDailyLogViewModelProvider(widget.selectedDate).notifier);
 
     return GradientBackground(
       child: Scaffold(
         body: SafeArea(
           child: Column(
             children: [
-              _CustomAppBar(selectedDate: selectedDate),
+              _CustomAppBar(selectedDate: widget.selectedDate),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -37,7 +66,10 @@ class AddDailyLogScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 24),
-                      const Text('오늘 기분은 어떠신가요?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                      Text(
+                        state.isEditMode ? '기록을 수정하시겠어요?' : '오늘 기분은 어떠신가요?',
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         '잠시 나를 돌보는 시간을 가져보세요.',
@@ -65,9 +97,9 @@ class AddDailyLogScreen extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const SizedBox(height: 32),
-                                  _MemoInput(selectedDate: selectedDate),
+                                  _MemoInput(selectedDate: widget.selectedDate, controller: _memoController),
                                   const SizedBox(height: 32),
-                                  _PhotoAttachment(selectedDate: selectedDate),
+                                  _PhotoAttachment(selectedDate: widget.selectedDate),
                                   const SizedBox(height: 24),
                                 ],
                               )
@@ -86,7 +118,7 @@ class AddDailyLogScreen extends ConsumerWidget {
                   );
                 },
                 child: state.selectedEmotion != null
-                    ? _SaveButton(key: const ValueKey('save_button'), selectedDate: selectedDate)
+                    ? _SaveButton(key: const ValueKey('save_button'), selectedDate: widget.selectedDate)
                     : const SizedBox.shrink(key: ValueKey('empty_button')),
               ),
             ],
@@ -97,12 +129,14 @@ class AddDailyLogScreen extends ConsumerWidget {
   }
 }
 
-class _CustomAppBar extends StatelessWidget {
+class _CustomAppBar extends ConsumerWidget {
   final DateTime selectedDate;
   const _CustomAppBar({required this.selectedDate});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(addDailyLogViewModelProvider(selectedDate));
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
@@ -112,7 +146,7 @@ class _CustomAppBar extends StatelessWidget {
           Column(
             children: [
               Text(
-                '기분 기록하기',
+                state.isEditMode ? '기록 수정하기' : '기분 기록하기',
                 style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
               ),
               const SizedBox(height: 2),
@@ -133,19 +167,16 @@ class _EmotionSelector extends StatelessWidget {
   final String? selectedEmotion;
   final Function(String) onSelectEmotion;
 
-  const _EmotionSelector({this.selectedEmotion, required this.onSelectEmotion});
+  const _EmotionSelector({super.key, this.selectedEmotion, required this.onSelectEmotion});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return SizedBox(
-      height: 100,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: emotions.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 12),
-        itemBuilder: (context, index) {
-          final emotion = emotions[index];
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: emotions.map((emotion) {
           final isSelected = selectedEmotion == emotion['label'];
           return GestureDetector(
             onTap: () => onSelectEmotion(emotion['label']!),
@@ -153,36 +184,47 @@ class _EmotionSelector extends StatelessWidget {
               children: [
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  width: 64,
-                  height: 64,
+                  width: 52,
+                  height: 52,
+                  transform: Matrix4.identity()..scale(isSelected ? 1.15 : 1.0),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white,
-                    border: isSelected ? Border.all(color: theme.colorScheme.primary, width: 2.5) : null,
+                    color: isSelected 
+                        ? theme.colorScheme.primary.withOpacity(0.2) 
+                        : (theme.brightness == Brightness.dark ? Colors.grey[800] : Colors.white),
+                    border: Border.all(
+                      color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+                      width: 2.5,
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: isSelected ? theme.colorScheme.primary.withOpacity(0.3) : Colors.black.withOpacity(0.08),
-                        blurRadius: 15,
+                        color: isSelected 
+                            ? theme.colorScheme.primary.withOpacity(0.4) 
+                            : Colors.black.withOpacity(0.1),
+                        blurRadius: isSelected ? 10 : 5,
                         spreadRadius: isSelected ? 1 : 0,
-                        offset: const Offset(0, 4),
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
-                  child: Center(child: SvgPicture.asset(emotion['svgPath']!, width: 40, height: 40)),
+                  child: Center(child: SvgPicture.asset(emotion['svgPath']!, width: 32, height: 32)),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  emotion['label']!,
+                const SizedBox(height: 8),
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? theme.colorScheme.primary : theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                    color: isSelected 
+                        ? theme.colorScheme.primary 
+                        : theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                   ),
+                  child: Text(emotion['label']!),
                 ),
               ],
             ),
           );
-        },
+        }).toList(),
       ),
     );
   }
@@ -190,7 +232,9 @@ class _EmotionSelector extends StatelessWidget {
 
 class _MemoInput extends ConsumerWidget {
   final DateTime selectedDate;
-  const _MemoInput({required this.selectedDate});
+  final TextEditingController controller;
+
+  const _MemoInput({required this.selectedDate, required this.controller});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -212,8 +256,9 @@ class _MemoInput extends ConsumerWidget {
         GlassyContainer(
           padding: const EdgeInsets.all(16.0),
           child: TextField(
+            controller: controller,
             onChanged: (text) => ref.read(addDailyLogViewModelProvider(selectedDate).notifier).updateMemo(text),
-            decoration: InputDecoration(hintText: '오늘의 이야기를 적어보세요...', border: InputBorder.none),
+            decoration: const InputDecoration(hintText: '오늘의 이야기를 적어보세요...', border: InputBorder.none),
             maxLines: 5,
             keyboardType: TextInputType.multiline,
           ),
@@ -334,7 +379,7 @@ class _SaveButton extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 32.0),
       child: BottomActionButton(
-        text: '기분 저장하기',
+        text: state.isEditMode ? '수정하기' : '기분 저장하기',
         icon: Icons.favorite,
         isLoading: state.isLoading,
         onPressed: isEmotionSelected
