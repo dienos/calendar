@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dienos_calendar/providers.dart';
+import 'package:dienos_calendar/utils/permission_helper.dart';
 import 'package:domain/entities/daily_log_record.dart';
 import 'package:domain/usecases/add_event_usecase.dart';
 import 'package:flutter/foundation.dart';
@@ -65,13 +66,7 @@ class AddDailyLogState {
 
   @override
   int get hashCode {
-    return Object.hash(
-      selectedDate,
-      selectedEmotion,
-      memo,
-      images,
-      isLoading,
-    );
+    return Object.hash(selectedDate, selectedEmotion, memo, images, isLoading);
   }
 }
 
@@ -81,7 +76,7 @@ class AddDailyLogViewModel extends StateNotifier<AddDailyLogState> {
   final _picker = ImagePicker();
 
   AddDailyLogViewModel(this._ref, DateTime selectedDate, this._addEventUseCase)
-      : super(AddDailyLogState(selectedDate: selectedDate));
+    : super(AddDailyLogState(selectedDate: selectedDate));
 
   void selectEmotion(String emotion) {
     state = state.copyWith(selectedEmotion: emotion);
@@ -91,13 +86,21 @@ class AddDailyLogViewModel extends StateNotifier<AddDailyLogState> {
     state = state.copyWith(memo: memo);
   }
 
-  Future<void> addImage() async {
+  Future<PermissionResult?> addImage() async {
+    if (state.images.length >= 5) {
+      return null;
+    }
+
+    final permissionResult = await PermissionHelper.requestPhotoPermission();
+    if (permissionResult != PermissionResult.granted) {
+      return permissionResult;
+    }
+
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      if (state.images.length < 5) {
-        state = state.copyWith(images: [...state.images, File(pickedFile.path)]);
-      }
+      state = state.copyWith(images: [...state.images, File(pickedFile.path)]);
     }
+    return PermissionResult.granted;
   }
 
   void removeImage(int index) {
@@ -113,7 +116,11 @@ class AddDailyLogViewModel extends StateNotifier<AddDailyLogState> {
 
     state = state.copyWith(isLoading: true);
     try {
-      final record = DailyLogRecord(state.selectedEmotion!, state.memo);
+      final record = DailyLogRecord(
+        state.selectedEmotion!,
+        state.memo,
+        images: state.images.map((f) => f.path).toList(),
+      );
       await _addEventUseCase(state.selectedDate, record);
       _ref.invalidate(calendarViewModelProvider);
       state = state.copyWith(isLoading: false);

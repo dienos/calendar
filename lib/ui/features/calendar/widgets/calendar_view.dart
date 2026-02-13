@@ -1,4 +1,5 @@
 import 'package:dienos_calendar/providers.dart';
+import 'package:dienos_calendar/ui/common/glassy_container.dart';
 import 'package:dienos_calendar/ui/features/add_daily_log/add_daily_log_screen_view_model.dart';
 import 'package:dienos_calendar/ui/features/daily_log_detail/daily_log_detail_screen.dart';
 import 'package:dienos_calendar/utils/date_utils.dart';
@@ -25,10 +26,7 @@ class CalendarView extends ConsumerWidget {
       final events = calendarViewModel.getEventsForDay(day);
       final firstLog = events.whereType<DailyLogRecord>().firstOrNull;
       if (firstLog != null) {
-        final entry = emotions.firstWhere(
-          (e) => e['label'] == firstLog.emotion,
-          orElse: () => {},
-        );
+        final entry = emotions.firstWhere((e) => e['label'] == firstLog.emotion, orElse: () => {});
         return entry['svgPath'];
       }
       return null;
@@ -48,8 +46,7 @@ class CalendarView extends ConsumerWidget {
               Text(
                 '${day.day}',
                 style: isToday
-                    ? theme.textTheme.bodyMedium!
-                        .copyWith(color: theme.colorScheme.primary)
+                    ? theme.textTheme.bodyMedium!.copyWith(color: theme.colorScheme.primary)
                     : theme.textTheme.bodyMedium,
               ),
               SizedBox(
@@ -66,18 +63,8 @@ class CalendarView extends ConsumerWidget {
       );
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 5),
-          )
-        ],
-      ),
+    return GlassyContainer(
+      borderRadius: BorderRadius.circular(30),
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
       child: TableCalendar(
         rowHeight: 60,
@@ -86,9 +73,7 @@ class CalendarView extends ConsumerWidget {
         firstDay: DateTime.utc(2020, 1, 1),
         lastDay: DateTime.utc(2030, 12, 31),
         focusedDay: calendarState.focusedDay,
-        selectedDayPredicate: (day) =>
-            calendarState.selectedDay != null &&
-            day.isSameDayAs(calendarState.selectedDay!),
+        selectedDayPredicate: (day) => calendarState.selectedDay != null && day.isSameDayAs(calendarState.selectedDay!),
         headerVisible: false,
         daysOfWeekVisible: true,
         calendarFormat: CalendarFormat.month,
@@ -105,27 +90,21 @@ class CalendarView extends ConsumerWidget {
           final events = calendarViewModel.getEventsForDay(selectedDay);
 
           if (events.isNotEmpty) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => DailyLogDetailScreen(date: selectedDay),
-              ),
-            );
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (context) => DailyLogDetailScreen(date: selectedDay)));
           } else {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => AddDailyLogScreen(selectedDate: selectedDay),
-              ),
-            );
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (context) => AddDailyLogScreen(selectedDate: selectedDay)));
           }
         },
         onPageChanged: (focusedDay) {
           calendarViewModel.onPageChanged(focusedDay);
         },
         daysOfWeekStyle: DaysOfWeekStyle(
-          weekdayStyle:
-              TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.5)),
-          weekendStyle:
-              TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.5)),
+          weekdayStyle: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.5)),
+          weekendStyle: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.5)),
         ),
         calendarStyle: const CalendarStyle(
           todayDecoration: BoxDecoration(color: Colors.transparent),
@@ -148,10 +127,7 @@ class CalendarView extends ConsumerWidget {
             return buildCalendarDay(
               day,
               decoration: BoxDecoration(
-                border: Border.all(
-                  color: theme.colorScheme.primary,
-                  width: 2.0,
-                ),
+                border: Border.all(color: theme.colorScheme.primary, width: 2.0),
                 borderRadius: BorderRadius.circular(12),
               ),
             );
@@ -160,7 +136,7 @@ class CalendarView extends ConsumerWidget {
             return Center(
               child: Text(
                 '${day.day}',
-                style: TextStyle(color: Colors.grey.withOpacity(0.5)),
+                style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.3)),
               ),
             );
           },

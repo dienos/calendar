@@ -11,10 +11,12 @@ class GetMonthlyStatsUseCase {
 
     final moodCount = await _repository.countMoodEntriesForMonth(yearMonth);
     final memoCount = await _repository.countMemoEntriesForMonth(yearMonth);
+    final photoCount = await _repository.countPhotoEntriesForMonth(yearMonth);
 
     return MonthlyStats(
       moodEntries: moodCount,
       memoEntries: memoCount,
+      photoEntries: photoCount,
     );
   }
 }

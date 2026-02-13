@@ -1,4 +1,5 @@
 import 'package:dienos_calendar/providers.dart';
+import 'package:dienos_calendar/ui/common/stat_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,31 +15,37 @@ class MonthlyHighlight extends ConsumerWidget {
     final List<Widget> cards = [];
 
     if (stats.moodEntries > 0) {
-      cards.add(_HighlightCard(
-        icon: Icons.favorite,
-        iconColor: Colors.pinkAccent,
-        title: "기분 입력",
-        count: "${stats.moodEntries}회",
-        subtitle: "이번 달 꾸준히 기록하셨네요!",
-      ));
+      cards.add(
+        StatCard(
+          icon: Icons.favorite,
+          iconColor: Colors.pinkAccent,
+          title: "기분 입력",
+          count: "${stats.moodEntries}회",
+          subtitle: "이번 달 꾸준히 기록하셨네요!",
+        ),
+      );
     }
     if (stats.memoEntries > 0) {
-      cards.add(_HighlightCard(
-        icon: Icons.drive_file_rename_outline,
-        iconColor: Colors.orangeAccent,
-        title: "메모 작성",
-        count: "${stats.memoEntries}개",
-        subtitle: "솔직한 마음들을 많이 담았어요",
-      ));
+      cards.add(
+        StatCard(
+          icon: Icons.drive_file_rename_outline,
+          iconColor: Colors.orangeAccent,
+          title: "메모 작성",
+          count: "${stats.memoEntries}개",
+          subtitle: "솔직한 마음들을 많이 담았어요",
+        ),
+      );
     }
     if (stats.photoEntries > 0) {
-      cards.add(_HighlightCard(
-        icon: Icons.camera_alt,
-        iconColor: Colors.redAccent,
-        title: "사진 등록",
-        count: "${stats.photoEntries}장", // Currently 0
-        subtitle: "소중한 순간들을 포착했어요",
-      ));
+      cards.add(
+        StatCard(
+          icon: Icons.camera_alt,
+          iconColor: Colors.redAccent,
+          title: "사진 등록",
+          count: "${stats.photoEntries}장",
+          subtitle: "소중한 순간들을 포착했어요",
+        ),
+      );
     }
 
     if (cards.isEmpty) {
@@ -52,7 +59,11 @@ class MonthlyHighlight extends ConsumerWidget {
           padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
           child: Text(
             "이달의 하이라이트",
-            style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: const Color(0xFF6B6B6B),
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
         ),
         ListView.separated(
@@ -60,85 +71,9 @@ class MonthlyHighlight extends ConsumerWidget {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: cards.length,
           itemBuilder: (context, index) => cards[index],
-          separatorBuilder: (context, index) => const SizedBox(height: 8),
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
         ),
       ],
-    );
-  }
-}
-
-class _HighlightCard extends StatelessWidget {
-  const _HighlightCard({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.count,
-    required this.subtitle,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String count;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(icon, color: iconColor, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 8),
-                    Text(
-                      count,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: iconColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6)),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -1,21 +1,58 @@
+import 'package:dienos_calendar/ui/common/gradient_background.dart';
 import 'package:dienos_calendar/ui/features/calendar/widgets/calendar_header.dart';
 import 'package:dienos_calendar/ui/features/calendar/widgets/calendar_view.dart';
 import 'package:dienos_calendar/ui/features/calendar/widgets/monthly_highlight.dart';
+import 'package:dienos_calendar/ui/features/more/more_screen.dart';
 import 'package:flutter/material.dart';
 
-class CalendarScreen extends StatelessWidget {
+class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  State<CalendarScreen> createState() => _CalendarScreenState();
+}
 
+class _CalendarScreenState extends State<CalendarScreen> {
+  int _currentIndex = 0;
+
+  final List<Widget> _tabs = [
+    const _CalendarTab(),
+    GradientBackground(child: Center(child: Text("통계 화면 준비 중"))), // Placeholder for Stats
+    const MoreScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      body: SafeArea(
+      body: _tabs[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: '캘린더'),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: '통계'),
+          BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: '더보기'),
+        ],
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+      ),
+    );
+  }
+}
+
+class _CalendarTab extends StatelessWidget {
+  const _CalendarTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return GradientBackground(
+      child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 16),
               const CalendarHeader(),
@@ -23,6 +60,7 @@ class CalendarScreen extends StatelessWidget {
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const CalendarView(),
                       const SizedBox(height: 24),
@@ -35,16 +73,6 @@ class CalendarScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: '캘린더'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: '통계'),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: '일기'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: '설정'),
-        ],
-        currentIndex: 0,
-        onTap: (index) {},
       ),
     );
   }

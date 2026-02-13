@@ -6,6 +6,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 
 import 'package:dienos_calendar/providers.dart';
+import 'package:dienos_calendar/ui/common/glassy_container.dart';
+import 'package:dienos_calendar/ui/common/gradient_background.dart';
+import 'package:dienos_calendar/utils/permission_helper.dart';
+import 'package:dienos_calendar/utils/ui_utils.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:dienos_calendar/ui/common/bottom_action_button.dart';
 import 'add_daily_log_screen_view_model.dart';
 
 class AddDailyLogScreen extends ConsumerWidget {
@@ -18,87 +24,73 @@ class AddDailyLogScreen extends ConsumerWidget {
     final state = ref.watch(addDailyLogViewModelProvider(selectedDate));
     final viewModel = ref.read(addDailyLogViewModelProvider(selectedDate).notifier);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFFEF9F9),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _CustomAppBar(selectedDate: selectedDate),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 24),
-                    const Text(
-                      '오늘 기분은 어떠신가요?',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '잠시 나를 돌보는 시간을 가져보세요.',
-                      style: TextStyle(fontSize: 15, color: Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 24),
-                    _EmotionSelector(
-                      selectedEmotion: state.selectedEmotion,
-                      onSelectEmotion: viewModel.selectEmotion,
-                    ),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 500),
-                      transitionBuilder: (child, animation) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: SizeTransition(
-                            sizeFactor: animation,
-                            axis: Axis.vertical,
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: state.selectedEmotion != null
-                          ? Column(
-                              key: const ValueKey('add_daily_log_content'),
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 32),
-                                _MemoInput(selectedDate: selectedDate),
-                                const SizedBox(height: 32),
-                                _PhotoAttachment(selectedDate: selectedDate),
-                                const SizedBox(height: 24),
-                              ],
-                            )
-                          : const SizedBox.shrink(
-                              key: ValueKey('empty'),
-                            ),
-                    ),
-                  ],
+    return GradientBackground(
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              _CustomAppBar(selectedDate: selectedDate),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 24),
+                      const Text('오늘 기분은 어떠신가요?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Text(
+                        '잠시 나를 돌보는 시간을 가져보세요.',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _EmotionSelector(
+                        selectedEmotion: state.selectedEmotion,
+                        onSelectEmotion: viewModel.selectEmotion,
+                      ),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 500),
+                        transitionBuilder: (child, animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: SizeTransition(sizeFactor: animation, axis: Axis.vertical, child: child),
+                          );
+                        },
+                        child: state.selectedEmotion != null
+                            ? Column(
+                                key: const ValueKey('add_daily_log_content'),
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 32),
+                                  _MemoInput(selectedDate: selectedDate),
+                                  const SizedBox(height: 32),
+                                  _PhotoAttachment(selectedDate: selectedDate),
+                                  const SizedBox(height: 24),
+                                ],
+                              )
+                            : const SizedBox.shrink(key: ValueKey('empty')),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (child, animation) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: SizeTransition(
-                    sizeFactor: animation,
-                    axis: Axis.vertical,
-                    child: child,
-                  ),
-                );
-              },
-              child: state.selectedEmotion != null
-                  ? _SaveButton(
-                      key: const ValueKey('save_button'),
-                      selectedDate: selectedDate,
-                    )
-                  : const SizedBox.shrink(
-                      key: ValueKey('empty_button'),
-                    ),
-            ),
-          ],
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SizeTransition(sizeFactor: animation, axis: Axis.vertical, child: child),
+                  );
+                },
+                child: state.selectedEmotion != null
+                    ? _SaveButton(key: const ValueKey('save_button'), selectedDate: selectedDate)
+                    : const SizedBox.shrink(key: ValueKey('empty_button')),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -116,13 +108,13 @@ class _CustomAppBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+          IconButton(icon: const Icon(Icons.arrow_back_ios_new), onPressed: () => Navigator.of(context).pop()),
           Column(
             children: [
-              Text('기분 기록하기', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+              Text(
+                '기분 기록하기',
+                style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
+              ),
               const SizedBox(height: 2),
               Text(
                 DateFormat('M월 d일 EEEE', 'ko_KR').format(selectedDate),
@@ -130,10 +122,7 @@ class _CustomAppBar extends StatelessWidget {
               ),
             ],
           ),
-          IconButton(
-            icon: const Icon(Icons.more_horiz),
-            onPressed: () {},
-          ),
+          IconButton(icon: const Icon(Icons.more_horiz), onPressed: () {}),
         ],
       ),
     );
@@ -172,22 +161,14 @@ class _EmotionSelector extends StatelessWidget {
                     border: isSelected ? Border.all(color: theme.colorScheme.primary, width: 2.5) : null,
                     boxShadow: [
                       BoxShadow(
-                        color: isSelected
-                            ? theme.colorScheme.primary.withOpacity(0.3)
-                            : Colors.black.withOpacity(0.08),
+                        color: isSelected ? theme.colorScheme.primary.withOpacity(0.3) : Colors.black.withOpacity(0.08),
                         blurRadius: 15,
                         spreadRadius: isSelected ? 1 : 0,
                         offset: const Offset(0, 4),
-                      )
+                      ),
                     ],
                   ),
-                  child: Center(
-                    child: SvgPicture.asset(
-                      emotion['svgPath']!,
-                      width: 40,
-                      height: 40,
-                    ),
-                  ),
+                  child: Center(child: SvgPicture.asset(emotion['svgPath']!, width: 40, height: 40)),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -195,7 +176,7 @@ class _EmotionSelector extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? theme.colorScheme.primary : Colors.grey[600],
+                    color: isSelected ? theme.colorScheme.primary : theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                   ),
                 ),
               ],
@@ -221,25 +202,18 @@ class _MemoInput extends ConsumerWidget {
           children: [
             Icon(Icons.edit_note, color: theme.colorScheme.primary, size: 20),
             const SizedBox(width: 8),
-            Text('메모', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
+            Text(
+              '메모',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+            ),
           ],
         ),
         const SizedBox(height: 12),
-        Container(
+        GlassyContainer(
           padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.05), spreadRadius: 1, blurRadius: 12)
-            ],
-          ),
           child: TextField(
             onChanged: (text) => ref.read(addDailyLogViewModelProvider(selectedDate).notifier).updateMemo(text),
-            decoration: InputDecoration(
-              hintText: '오늘의 이야기를 적어보세요...',
-              border: InputBorder.none,
-            ),
+            decoration: InputDecoration(hintText: '오늘의 이야기를 적어보세요...', border: InputBorder.none),
             maxLines: 5,
             keyboardType: TextInputType.multiline,
           ),
@@ -269,28 +243,42 @@ class _PhotoAttachment extends ConsumerWidget {
               children: [
                 Icon(Icons.photo_library, color: theme.colorScheme.primary, size: 20),
                 const SizedBox(width: 8),
-                Text('오늘의 사진', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
+                Text(
+                  '오늘의 사진',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+                ),
               ],
             ),
-            Text('${state.images.length}/5개 등록됨', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+            Text(
+              '${state.images.length}/5개 등록됨',
+              style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6)),
+            ),
           ],
         ),
         const SizedBox(height: 12),
         GestureDetector(
-          onTap: viewModel.addImage,
-          child: Container(
+          onTap: () async {
+            final result = await viewModel.addImage();
+            if (!context.mounted) return;
+            if (result == PermissionResult.permanentlyDenied) {
+              showAppSnackBar(context, '설정에서 사진 접근 권한을 허용해주세요.');
+              openAppSettings();
+            } else if (result == PermissionResult.denied) {
+              showAppSnackBar(context, '사진 접근 권한이 필요합니다.');
+            }
+          },
+          child: GlassyContainer(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), spreadRadius: 1, blurRadius: 12)]),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.add_circle_outline, color: theme.colorScheme.primary, size: 20),
                 const SizedBox(width: 8),
-                Text('사진 추가하기', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
+                Text(
+                  '사진 추가하기',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+                ),
               ],
             ),
           ),
@@ -302,8 +290,9 @@ class _PhotoAttachment extends ConsumerWidget {
           return Container(
             margin: const EdgeInsets.only(bottom: 12.0),
             decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.0),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 4))]),
+              borderRadius: BorderRadius.circular(20.0),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 4))],
+            ),
             child: Stack(
               children: [
                 ClipRRect(
@@ -317,10 +306,7 @@ class _PhotoAttachment extends ConsumerWidget {
                     onTap: () => viewModel.removeImage(idx),
                     child: Container(
                       padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        shape: BoxShape.circle,
-                      ),
+                      decoration: BoxDecoration(color: Colors.black.withOpacity(0.5), shape: BoxShape.circle),
                       child: const Icon(Icons.close, color: Colors.white, size: 18),
                     ),
                   ),
@@ -328,7 +314,7 @@ class _PhotoAttachment extends ConsumerWidget {
               ],
             ),
           );
-        })
+        }),
       ],
     );
   }
@@ -342,48 +328,23 @@ class _SaveButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(addDailyLogViewModelProvider(selectedDate));
     final viewModel = ref.read(addDailyLogViewModelProvider(selectedDate).notifier);
-    final theme = Theme.of(context);
 
     final bool isEmotionSelected = state.selectedEmotion != null;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 16.0),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: isEmotionSelected
-              ? () async {
-                  final success = await viewModel.saveDailyLog();
-                  if (success) {
-                    Navigator.of(context).pop();
-                  }
+      padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 32.0),
+      child: BottomActionButton(
+        text: '기분 저장하기',
+        icon: Icons.favorite,
+        isLoading: state.isLoading,
+        onPressed: isEmotionSelected
+            ? () async {
+                final success = await viewModel.saveDailyLog();
+                if (success && context.mounted) {
+                  Navigator.of(context).pop();
                 }
-              : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: isEmotionSelected ? theme.colorScheme.primary : Colors.grey[300],
-            foregroundColor: isEmotionSelected ? Colors.white : Colors.grey[500],
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-            elevation: isEmotionSelected ? 5 : 0,
-            shadowColor: theme.colorScheme.primary.withOpacity(0.4),
-          ),
-          child: state.isLoading
-              ? const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(color: Colors.white))
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Text(
-                      '기분 저장하기',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(width: 8),
-                    Icon(Icons.favorite, size: 20),
-                  ],
-                ),
-        ),
+              }
+            : null,
       ),
     );
   }

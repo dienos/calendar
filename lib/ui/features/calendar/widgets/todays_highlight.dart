@@ -23,23 +23,20 @@ class TodaysHighlight extends ConsumerWidget {
     }
 
     const emotions = SelectEmotionScreen.emotions;
-    final entry = emotions.firstWhere(
-      (e) => e['label'] == firstLog.emotion,
-      orElse: () => <String, String>{},
-    );
+    final entry = emotions.firstWhere((e) => e['label'] == firstLog.emotion, orElse: () => <String, String>{});
     final svgPath = entry['svgPath'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("오늘의 하이라이트", style: theme.textTheme.labelMedium!.copyWith(color: Colors.grey)),
+        Text(
+          "오늘의 하이라이트",
+          style: theme.textTheme.labelMedium!.copyWith(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7)),
+        ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(20.0),
-          decoration: BoxDecoration(
-            color: theme.cardTheme.color,
-            borderRadius: BorderRadius.circular(30),
-          ),
+          decoration: BoxDecoration(color: theme.cardTheme.color, borderRadius: BorderRadius.circular(30)),
           child: Row(
             children: [
               Container(
@@ -49,11 +46,7 @@ class TodaysHighlight extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: svgPath != null && svgPath.isNotEmpty
-                    ? SvgPicture.asset(
-                        svgPath,
-                        width: 32,
-                        height: 32,
-                      )
+                    ? SvgPicture.asset(svgPath, width: 32, height: 32)
                     : const Text('✨', style: TextStyle(fontSize: 32)),
               ),
               const SizedBox(width: 16),
@@ -63,10 +56,18 @@ class TodaysHighlight extends ConsumerWidget {
                   children: [
                     Text(
                       DateFormat.yMMMMd('ko_KR').format(selectedDate),
-                      style: theme.textTheme.labelMedium!.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
+                      style: theme.textTheme.labelMedium!.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 4),
-                    Text('"${firstLog.memo}"', style: theme.textTheme.bodyLarge, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    Text(
+                      '"${firstLog.memo}"',
+                      style: theme.textTheme.bodyLarge,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),

@@ -9,4 +9,6 @@ abstract class CalendarRepository {
   Future<int> countMoodEntriesForMonth(String yearMonth);
 
   Future<int> countMemoEntriesForMonth(String yearMonth);
+
+  Future<int> countPhotoEntriesForMonth(String yearMonth);
 }

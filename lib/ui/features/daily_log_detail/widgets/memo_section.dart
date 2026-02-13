@@ -1,3 +1,4 @@
+import 'package:dienos_calendar/ui/common/glassy_container.dart';
 import 'package:flutter/material.dart';
 
 class MemoSection extends StatelessWidget {
@@ -24,20 +25,9 @@ class MemoSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Container(
+          GlassyContainer(
             width: double.infinity,
             padding: const EdgeInsets.all(20.0),
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                )
-              ]
-            ),
             child: Text(memo, style: theme.textTheme.bodyLarge?.copyWith(height: 1.5)),
           ),
         ],

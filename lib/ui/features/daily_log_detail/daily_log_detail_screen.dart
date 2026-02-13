@@ -1,4 +1,5 @@
 import 'package:dienos_calendar/providers.dart';
+import 'package:dienos_calendar/ui/common/gradient_background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -15,44 +16,41 @@ class DailyLogDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dailyLogAsync = ref.watch(dailyLogDetailProvider(date));
-    final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      appBar: AppBar(
-        backgroundColor: theme.colorScheme.background,
-        title: Text(DateFormat('M월 d일 EEEE', 'ko_KR').format(date)),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: TextButton(
-              onPressed: () {},
-              child: const Text('수정하기'),
+    return GradientBackground(
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          title: Text(DateFormat('M월 d일 EEEE', 'ko_KR').format(date)),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: TextButton(onPressed: () {}, child: const Text('수정하기')),
             ),
-          ),
-        ],
-      ),
-      body: dailyLogAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('데이터를 불러올 수 없습니다: $err')),
-        data: (dailyLog) {
-          if (dailyLog == null) {
-            return const Center(child: Text('이 날짜에 저장된 기록이 없습니다.'));
-          }
-          return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                EmotionSection(emotion: dailyLog.emotion),
-                const SizedBox(height: 32),
-                MemoSection(memo: dailyLog.memo),
-                const SizedBox(height: 32),
-                PhotoSection(images: dailyLog.images),
-              ],
-            ),
-          );
-        },
+          ],
+        ),
+        body: dailyLogAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Center(child: Text('데이터를 불러올 수 없습니다: $err')),
+          data: (dailyLog) {
+            if (dailyLog == null) {
+              return const Center(child: Text('이 날짜에 저장된 기록이 없습니다.'));
+            }
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  EmotionSection(emotion: dailyLog.emotion),
+                  const SizedBox(height: 32),
+                  MemoSection(memo: dailyLog.memo),
+                  const SizedBox(height: 32),
+                  PhotoSection(images: dailyLog.images),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

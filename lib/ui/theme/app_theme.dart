@@ -1,20 +1,17 @@
+import 'package:dienos_calendar/ui/theme/theme_controller.dart';
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static final theme = _buildLightTheme();
-  static final darkTheme = _buildDarkTheme();
-
-  static ThemeData _buildLightTheme() {
-    // A new color scheme inspired by the user provided image
+  static ThemeData getTheme(AppColorTheme colorTheme) {
     final colorScheme = ColorScheme.light(
-      primary: const Color(0xFFF97A8D),      // A soft, warm pink/coral for primary actions.
-      secondary: const Color(0xFFFABEC5),    // A lighter pink for secondary elements.
-      background: const Color(0xFFFDF8F5),    // A very light, off-white/cream background.
-      surface: Colors.white,                // Cards are pure white for a clean contrast.
-      onPrimary: Colors.white,
-      onSecondary: Colors.black,
-      onBackground: const Color(0xFF333333),   // Dark grey for primary text.
-      onSurface: const Color(0xFF333333),
+      primary: colorTheme.activeColor,
+      secondary: colorTheme.activeColor.withOpacity(0.7),
+      background: colorTheme.gradientColors.last,
+      surface: Colors.white,
+      onPrimary: colorTheme.navUnselectedColor,
+      onSecondary: Colors.white,
+      onBackground: colorTheme.textColor,
+      onSurface: colorTheme.textColor,
       error: Colors.red.shade400,
       onError: Colors.white,
     );
@@ -22,71 +19,78 @@ class AppTheme {
     return ThemeData.light().copyWith(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: colorScheme.background,
+      scaffoldBackgroundColor: Colors.transparent,
+
+      textTheme: ThemeData.light().textTheme.apply(bodyColor: colorTheme.textColor, displayColor: colorTheme.textColor),
+
       cardTheme: CardThemeData(
         color: colorScheme.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.background,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: colorScheme.onBackground),
-        titleTextStyle: TextStyle(
-            color: colorScheme.onBackground,
-            fontSize: 24,
-            fontWeight: FontWeight.bold),
+        iconTheme: IconThemeData(color: colorTheme.textColor),
+        titleTextStyle: TextStyle(color: colorTheme.textColor, fontSize: 24, fontWeight: FontWeight.bold),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: colorScheme.surface,
-        selectedItemColor: colorScheme.primary,
-        unselectedItemColor: Colors.grey.shade400,
+        backgroundColor: Colors.transparent,
+        selectedItemColor: colorTheme.activeColor,
+        unselectedItemColor: colorTheme.navUnselectedColor,
         elevation: 0,
         type: BottomNavigationBarType.fixed,
         showUnselectedLabels: true,
-        selectedLabelStyle: const TextStyle(fontSize: 12),
-        unselectedLabelStyle: const TextStyle(fontSize: 12),
+        selectedLabelStyle: TextStyle(color: colorTheme.activeColor, fontSize: 12, fontWeight: FontWeight.bold),
+        unselectedLabelStyle: TextStyle(color: colorTheme.navUnselectedColor, fontSize: 12),
       ),
     );
   }
 
-  static ThemeData _buildDarkTheme() {
-    // Let's also update the dark theme to match the new branding.
+  static ThemeData getDarkTheme(AppColorTheme colorTheme) {
     final colorScheme = ColorScheme.dark(
-      primary: const Color(0xFFF97A8D),      // The pink remains the primary color.
-      secondary: const Color(0xFFFABEC5),
-      background: const Color(0xFF1C1C24),
-      surface: const Color(0xFF2A2A38),
-      onPrimary: Colors.black,
+      primary: colorTheme.darkActiveColor,
+      secondary: colorTheme.darkActiveColor.withOpacity(0.7),
+      background: colorTheme.darkGradientColors.last,
+      surface: Colors.grey[900]!, // 다크 모드 카드 배경
+      onPrimary: Colors.black, // ActiveColor가 밝은 색일 수 있으므로 검정
       onSecondary: Colors.black,
-      onBackground: Colors.white.withOpacity(0.9),
-      onSurface: Colors.white.withOpacity(0.9),
-      error: Colors.redAccent,
-      onError: Colors.white,
+      onBackground: colorTheme.darkTextColor,
+      onSurface: colorTheme.darkTextColor,
+      error: Colors.red.shade400,
+      onError: Colors.black,
     );
 
     return ThemeData.dark().copyWith(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: colorScheme.background,
+      scaffoldBackgroundColor: Colors.transparent,
+
+      textTheme: ThemeData.dark().textTheme.apply(
+        bodyColor: colorTheme.darkTextColor,
+        displayColor: colorTheme.darkTextColor,
+      ),
+
       cardTheme: CardThemeData(
         color: colorScheme.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.background,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: IconThemeData(color: colorTheme.darkTextColor),
+        titleTextStyle: TextStyle(color: colorTheme.darkTextColor, fontSize: 24, fontWeight: FontWeight.bold),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: colorScheme.surface,
-        selectedItemColor: colorScheme.primary,
-        unselectedItemColor: Colors.grey.shade600,
+        backgroundColor: Colors.transparent,
+        selectedItemColor: colorTheme.darkActiveColor,
+        unselectedItemColor: Colors.white54, // 다크 모드에서는 조금 더 밝은 회색
         elevation: 0,
         type: BottomNavigationBarType.fixed,
         showUnselectedLabels: true,
-        selectedLabelStyle: const TextStyle(fontSize: 12),
-        unselectedLabelStyle: const TextStyle(fontSize: 12),
+        selectedLabelStyle: TextStyle(color: colorTheme.darkActiveColor, fontSize: 12, fontWeight: FontWeight.bold),
+        unselectedLabelStyle: TextStyle(color: Colors.white54, fontSize: 12),
       ),
     );
   }

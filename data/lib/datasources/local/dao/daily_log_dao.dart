@@ -11,14 +11,18 @@ abstract class DailyLogDao {
   Future<List<DailyLogEntity>> findAllDailyLogs();
 
   @insert
-  Future<void> insertDailyLog(DailyLogEntity dailyLog);
+  Future<int> insertDailyLog(DailyLogEntity dailyLog);
 
   // --- Methods for Monthly Highlights ---
 
-  @Query("SELECT COUNT(*) FROM DailyLogEntity WHERE strftime('%Y-%m', date / 1000, 'unixepoch') = :yearMonth AND emotion != ''")
+  @Query(
+    "SELECT COUNT(*) FROM DailyLogEntity WHERE strftime('%Y-%m', date / 1000, 'unixepoch') = :yearMonth AND emotion != ''",
+  )
   Future<int?> countMoodEntriesForMonth(String yearMonth);
 
-  @Query("SELECT COUNT(*) FROM DailyLogEntity WHERE strftime('%Y-%m', date / 1000, 'unixepoch') = :yearMonth AND memo != ''")
+  @Query(
+    "SELECT COUNT(*) FROM DailyLogEntity WHERE strftime('%Y-%m', date / 1000, 'unixepoch') = :yearMonth AND memo != ''",
+  )
   Future<int?> countMemoEntriesForMonth(String yearMonth);
 
   // --- Methods for Detail Screen (New Approach) ---
