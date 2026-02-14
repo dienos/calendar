@@ -3,6 +3,7 @@ import 'package:dienos_calendar/ui/common/stat_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dienos_calendar/ui/features/emotion_list/emotion_list_screen.dart';
+import 'package:dienos_calendar/ui/features/memo_list/memo_list_screen.dart';
 
 class MonthlyHighlight extends ConsumerWidget {
   const MonthlyHighlight({super.key});
@@ -40,6 +41,12 @@ class MonthlyHighlight extends ConsumerWidget {
           title: "메모 작성",
           count: "${stats.memoEntries}개",
           subtitle: "솔직한 마음들을 많이 담았어요",
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => MemoListScreen(focusedMonth: focusedMonth)),
+            );
+          },
         ),
       );
     }

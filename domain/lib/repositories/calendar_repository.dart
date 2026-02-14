@@ -18,4 +18,6 @@ abstract class CalendarRepository {
   Future<List<DailyRecord>> getMonthlyLogs(DateTime month);
 
   Future<List<DailyLogRecord>> getLogsByRange(DateTime start, DateTime end);
+
+  Future<List<DailyLogRecord>> getMemoLogs(DateTime month);
 }

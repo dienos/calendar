@@ -219,4 +219,27 @@ class CalendarRepositoryImpl implements CalendarRepository {
       }),
     );
   }
+
+  @override
+  Future<List<DailyLogRecord>> getMemoLogs(DateTime month) async {
+    if (_database == null) return [];
+
+    final yearMonth = DateFormat('yyyy-MM').format(month);
+    final entities = await _database.dailyLogDao.findDailyLogsWithMemoByMonth(
+      yearMonth,
+    );
+
+    return Future.wait(
+      entities.map((e) async {
+        final images = await _database.dailyLogDao.findImagesByLogId(e.id!);
+        return DailyLogRecord(
+          e.emotion,
+          e.memo,
+          date: e.date,
+          id: e.id,
+          images: images.map((i) => i.path).toList(),
+        );
+      }),
+    );
+  }
 }

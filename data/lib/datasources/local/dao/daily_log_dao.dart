@@ -33,6 +33,11 @@ abstract class DailyLogDao {
   )
   Future<int?> countMemoEntriesForMonth(String yearMonth);
 
+  @Query(
+    "SELECT * FROM DailyLogEntity WHERE strftime('%Y-%m', date / 1000, 'unixepoch') = :yearMonth AND memo != '' ORDER BY date DESC",
+  )
+  Future<List<DailyLogEntity>> findDailyLogsWithMemoByMonth(String yearMonth);
+
   // --- Methods for Detail Screen (New Approach) ---
 
   @Query('SELECT * FROM DailyLogEntity WHERE date = :date LIMIT 1')

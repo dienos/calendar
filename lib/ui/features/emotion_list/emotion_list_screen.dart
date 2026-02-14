@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:dienos_calendar/providers.dart';
 import 'package:dienos_calendar/ui/common/gradient_background.dart';
 import 'package:dienos_calendar/ui/common/glassy_container.dart';
+import 'package:dienos_calendar/ui/common/month_selector.dart';
 
 class EmotionListScreen extends ConsumerStatefulWidget {
   final DateTime focusedMonth;
@@ -93,7 +94,7 @@ class _EmotionListScreenState extends ConsumerState<EmotionListScreen> {
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
-            "기분 기록 리스트",
+            "기분 모아보기",
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: theme.colorScheme.onSurface,
@@ -134,46 +135,7 @@ class _EmotionListScreenState extends ConsumerState<EmotionListScreen> {
   }
 
   Widget _buildMonthSelector(ThemeData theme) {
-    return SizedBox(
-      height: 60,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        scrollDirection: Axis.horizontal,
-        itemCount: _months.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final month = _months[index];
-          final isSelected = index == _currentIndex;
-
-          return Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => _onMonthSelected(index),
-              borderRadius: BorderRadius.circular(20),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected ? theme.colorScheme.primary.withOpacity(0.2) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
-                  border: isSelected ? Border.all(color: theme.colorScheme.primary.withOpacity(0.5)) : null,
-                ),
-                child: Center(
-                  child: Text(
-                    "${month.month}월",
-                    style: TextStyle(
-                      color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface.withOpacity(0.5),
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
+    return MonthSelector(months: _months, selectedIndex: _currentIndex, onMonthSelected: _onMonthSelected);
   }
 }
 

@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:domain/entities/daily_log_record.dart';
 import 'package:domain/usecases/add_event_usecase.dart';
 import 'package:domain/usecases/get_events_usecase.dart';
+import 'package:domain/usecases/get_memo_logs_usecase.dart';
 
 import 'ui/features/add_daily_log/add_daily_log_screen_view_model.dart';
 import 'ui/features/calendar/calendar_view_model.dart';
@@ -60,6 +61,11 @@ final addEventUseCaseProvider = Provider<AddEventUseCase>((ref) {
 final updateEventUseCaseProvider = Provider<UpdateEventUseCase>((ref) {
   final repository = ref.watch(calendarRepositoryProvider);
   return UpdateEventUseCase(repository);
+});
+
+final getMemoLogsUseCaseProvider = Provider<GetMemoLogsUseCase>((ref) {
+  final repository = ref.watch(calendarRepositoryProvider);
+  return GetMemoLogsUseCase(repository);
 });
 
 final getMonthlyStatsUseCaseProvider = Provider<GetMonthlyStatsUseCase>((ref) {
