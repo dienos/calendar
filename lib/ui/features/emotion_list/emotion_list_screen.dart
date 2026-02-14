@@ -22,30 +22,30 @@ class _EmotionListScreenState extends ConsumerState<EmotionListScreen> {
   late List<DateTime> _months;
 
   final Map<String, String> _emotionIcons = {
-    '매우 좋음': 'assets/svgs/emotion_very_good.svg',
+    '정말 좋음': 'assets/svgs/emotion_very_good.svg',
     '좋음': 'assets/svgs/emotion_good.svg',
     '보통': 'assets/svgs/emotion_soso.svg',
     '나쁨': 'assets/svgs/emotion_bad.svg',
-    '매우 나쁨': 'assets/svgs/emotion_very_bad.svg',
+    '끔찍함': 'assets/svgs/emotion_very_bad.svg',
   };
 
   Map<String, Color> _emotionColors(BuildContext context) {
     final theme = Theme.of(context);
     return {
-      '매우 좋음': theme.colorScheme.primary,
+      '정말 좋음': theme.colorScheme.primary,
       '좋음': theme.colorScheme.primary.withOpacity(0.8),
       '보통': theme.colorScheme.onSurface.withOpacity(0.4),
       '나쁨': theme.colorScheme.secondary,
-      '매우 나쁨': theme.colorScheme.secondary.withOpacity(0.8),
+      '끔찍함': theme.colorScheme.secondary.withOpacity(0.8),
     };
   }
 
   final Map<String, String> _emotionTitles = {
-    '매우 좋음': '최고의 하루!',
+    '정말 좋음': '최고의 하루!',
     '좋음': '기분 좋은 하루',
     '보통': '평온한 하루',
     '나쁨': '조금 힘든 하루',
-    '매우 나쁨': '지친 하루',
+    '끔찍함': '지친 하루',
   };
 
   @override
@@ -270,7 +270,7 @@ class _TimelinePage extends ConsumerWidget {
                             DateFormat('MM월 dd일 EEEE', 'ko_KR').format(log.date ?? DateTime.now()),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: accentColor.withOpacity(0.9),
+                              color: theme.colorScheme.onSurface.withOpacity(0.7),
                               fontSize: 14,
                             ),
                           ),
@@ -278,11 +278,10 @@ class _TimelinePage extends ConsumerWidget {
                           GlassyContainer(
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
-                            color: accentColor,
                             child: Text(
                               title,
                               style: theme.textTheme.titleMedium?.copyWith(
-                                color: accentColor,
+                                color: theme.colorScheme.onSurface,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),
