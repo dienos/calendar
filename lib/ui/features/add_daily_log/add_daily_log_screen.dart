@@ -13,6 +13,7 @@ import 'package:dienos_calendar/utils/ui_utils.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:dienos_calendar/ui/common/bottom_action_button.dart';
 import 'package:domain/entities/daily_log_record.dart';
+import 'package:dienos_calendar/utils/voice_service.dart';
 import 'add_daily_log_screen_view_model.dart';
 
 class AddDailyLogScreen extends ConsumerStatefulWidget {
@@ -231,39 +232,161 @@ class _EmotionSelector extends StatelessWidget {
   }
 }
 
-class _MemoInput extends ConsumerWidget {
+class _MemoInput extends ConsumerStatefulWidget {
   final DateTime selectedDate;
   final TextEditingController controller;
 
   const _MemoInput({required this.selectedDate, required this.controller});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_MemoInput> createState() => _MemoInputState();
+}
+
+class _MemoInputState extends ConsumerState<_MemoInput> with SingleTickerProviderStateMixin {
+  final VoiceRecorderService _voiceService = VoiceRecorderService();
+  bool _isListening = false;
+  late AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 1))
+      ..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _toggleListening() async {
+    if (_isListening) {
+      await _voiceService.stopListening();
+      if (mounted) setState(() => _isListening = false);
+    } else {
+      bool available = await _voiceService.initialize(
+        onStatus: (status) {
+          if (status == 'done' || status == 'notListening') {
+            if (mounted) setState(() => _isListening = false);
+          }
+        },
+      );
+      if (available) {
+        if (mounted) setState(() => _isListening = true);
+        await _voiceService.startListening(
+          onResult: (text, isFinal) {
+            widget.controller.text = text;
+            ref.read(addDailyLogViewModelProvider(widget.selectedDate).notifier).updateMemo(text);
+          },
+          onSoundLevelChanged: (level) {},
+        );
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('음성 인식을 사용할 수 없습니다.')));
+        }
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Stack(
       children: [
-        Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.edit_note, color: theme.colorScheme.primary, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              '메모',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.edit_note, color: theme.colorScheme.primary, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      '메모',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+                    ),
+                  ],
+                ),
+                GestureDetector(
+                  onTap: _toggleListening,
+                  child: Row(
+                    children: [
+                      Text(
+                        '보이스로 입력하기',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: _isListening ? Colors.redAccent : theme.colorScheme.primary.withOpacity(0.7),
+                          fontWeight: _isListening ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: _isListening ? Colors.redAccent.withOpacity(0.1) : Colors.transparent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _isListening ? Icons.mic : Icons.mic_none,
+                          color: _isListening ? Colors.redAccent : theme.colorScheme.primary,
+                          size: 24,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            GlassyContainer(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                controller: widget.controller,
+                onChanged: (text) =>
+                    ref.read(addDailyLogViewModelProvider(widget.selectedDate).notifier).updateMemo(text),
+                decoration: InputDecoration(
+                  hintText: _isListening ? '듣고 있어요...' : '오늘의 이야기를 적어보세요...',
+                  border: InputBorder.none,
+                ),
+                maxLines: 5,
+                keyboardType: TextInputType.multiline,
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        GlassyContainer(
-          padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            controller: controller,
-            onChanged: (text) => ref.read(addDailyLogViewModelProvider(selectedDate).notifier).updateMemo(text),
-            decoration: const InputDecoration(hintText: '오늘의 이야기를 적어보세요...', border: InputBorder.none),
-            maxLines: 5,
-            keyboardType: TextInputType.multiline,
+        if (_isListening)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.circular(20)),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ScaleTransition(
+                      scale: Tween(
+                        begin: 1.0,
+                        end: 1.3,
+                      ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut)),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(color: Colors.redAccent.withOpacity(0.1), shape: BoxShape.circle),
+                        child: const Icon(Icons.mic, color: Colors.redAccent, size: 40),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      '녹음 중...',
+                      style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
       ],
     );
   }
