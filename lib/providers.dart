@@ -14,6 +14,7 @@ import 'package:domain/usecases/get_events_usecase.dart';
 import 'ui/features/add_daily_log/add_daily_log_screen_view_model.dart';
 import 'ui/features/calendar/calendar_view_model.dart';
 import 'package:domain/usecases/update_event_usecase.dart';
+import 'package:domain/usecases/get_statistics_usecase.dart';
 
 import 'package:domain/usecases/get_monthly_logs_usecase.dart';
 import 'ui/features/emotion_list/emotion_list_view_model.dart';
@@ -69,6 +70,11 @@ final getMonthlyStatsUseCaseProvider = Provider<GetMonthlyStatsUseCase>((ref) {
 final getDailyLogDetailUseCaseProvider = Provider<GetDailyLogDetailUseCase>((ref) {
   final repository = ref.watch(dailyLogRepositoryProvider);
   return GetDailyLogDetailUseCase(repository);
+});
+
+final getStatisticsUseCaseProvider = Provider<GetStatisticsUseCase>((ref) {
+  final repository = ref.watch(calendarRepositoryProvider);
+  return GetStatisticsUseCase(repository);
 });
 
 // 3. UseCases -> ViewModel / Screen Data

@@ -38,6 +38,14 @@ abstract class DailyLogDao {
   @Query('SELECT * FROM DailyLogEntity WHERE date = :date LIMIT 1')
   Future<DailyLogEntity?> findDailyLogByDate(DateTime date);
 
+  @Query(
+    'SELECT * FROM DailyLogEntity WHERE date >= :start AND date <= :end ORDER BY date ASC',
+  )
+  Future<List<DailyLogEntity>> findDailyLogsByRange(
+    DateTime start,
+    DateTime end,
+  );
+
   @Query('SELECT * FROM images WHERE daily_log_id = :logId')
   Future<List<ImageEntity>> findImagesByLogId(int logId);
 }

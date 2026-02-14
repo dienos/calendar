@@ -193,4 +193,30 @@ class CalendarRepositoryImpl implements CalendarRepository {
       }),
     );
   }
+
+  @override
+  Future<List<DailyLogRecord>> getLogsByRange(
+    DateTime start,
+    DateTime end,
+  ) async {
+    if (_database == null) return [];
+
+    final entities = await _database.dailyLogDao.findDailyLogsByRange(
+      start,
+      end,
+    );
+
+    return Future.wait(
+      entities.map((e) async {
+        final images = await _database.dailyLogDao.findImagesByLogId(e.id!);
+        return DailyLogRecord(
+          e.emotion,
+          e.memo,
+          date: e.date,
+          id: e.id,
+          images: images.map((i) => i.path).toList(),
+        );
+      }),
+    );
+  }
 }

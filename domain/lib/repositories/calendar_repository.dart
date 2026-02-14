@@ -1,4 +1,5 @@
 import 'package:domain/entities/daily_record.dart';
+import 'package:domain/entities/daily_log_record.dart';
 
 abstract class CalendarRepository {
   Future<Map<DateTime, List<DailyRecord>>> getEvents();
@@ -15,4 +16,6 @@ abstract class CalendarRepository {
   Future<int> countPhotoEntriesForMonth(String yearMonth);
 
   Future<List<DailyRecord>> getMonthlyLogs(DateTime month);
+
+  Future<List<DailyLogRecord>> getLogsByRange(DateTime start, DateTime end);
 }

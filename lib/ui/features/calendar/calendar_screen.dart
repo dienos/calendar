@@ -3,6 +3,7 @@ import 'package:dienos_calendar/ui/features/calendar/widgets/calendar_header.dar
 import 'package:dienos_calendar/ui/features/calendar/widgets/calendar_view.dart';
 import 'package:dienos_calendar/ui/features/calendar/widgets/monthly_highlight.dart';
 import 'package:dienos_calendar/ui/features/more/more_screen.dart';
+import 'package:dienos_calendar/ui/features/statistics/statistics_screen.dart';
 import 'package:flutter/material.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -15,11 +16,7 @@ class CalendarScreen extends StatefulWidget {
 class _CalendarScreenState extends State<CalendarScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _tabs = [
-    const _CalendarTab(),
-    GradientBackground(child: Center(child: Text("통계 화면 준비 중"))), // Placeholder for Stats
-    const MoreScreen(),
-  ];
+  final List<Widget> _tabs = [const _CalendarTab(), const StatisticsScreen(), const MoreScreen()];
 
   @override
   Widget build(BuildContext context) {
