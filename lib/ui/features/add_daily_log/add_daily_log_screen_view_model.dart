@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dienos_calendar/providers.dart';
 import 'package:dienos_calendar/utils/permission_helper.dart';
+import 'package:dienos_calendar/utils/widget_service.dart';
 import 'package:domain/entities/daily_log_record.dart';
 import 'package:domain/usecases/add_event_usecase.dart';
 import 'package:domain/usecases/update_event_usecase.dart';
@@ -147,8 +148,9 @@ class AddDailyLogViewModel extends StateNotifier<AddDailyLogState> {
       }
 
       _ref.invalidate(calendarViewModelProvider);
-      // 상세 화면도 갱신
       _ref.invalidate(dailyLogDetailProvider(state.selectedDate));
+
+      await WidgetService.update(_ref.read(getEventsUseCaseProvider));
 
       state = state.copyWith(isLoading: false);
       return true;

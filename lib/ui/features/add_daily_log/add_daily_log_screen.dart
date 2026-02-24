@@ -4,12 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:dienos_calendar/providers.dart';
 import 'package:dienos_calendar/ui/common/glassy_container.dart';
 import 'package:dienos_calendar/ui/common/gradient_background.dart';
+import 'package:dienos_calendar/ui/common/widget_prompt_dialog.dart';
 import 'package:dienos_calendar/utils/permission_helper.dart';
 import 'package:dienos_calendar/utils/ui_utils.dart';
+import 'package:dienos_calendar/utils/widget_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:dienos_calendar/ui/common/bottom_action_button.dart';
 import 'package:domain/entities/daily_log_record.dart';
@@ -516,9 +519,28 @@ class _SaveButton extends ConsumerWidget {
         isLoading: state.isLoading,
         onPressed: isEmotionSelected
             ? () async {
+                final navigator = Navigator.of(context);
                 final success = await viewModel.saveDailyLog();
-                if (success && context.mounted) {
-                  Navigator.of(context).pop();
+                if (!success || !context.mounted) return;
+
+                bool shouldShowPrompt = false;
+                if (!state.isEditMode) {
+                  final prefs = await SharedPreferences.getInstance();
+                  final shown = prefs.getBool('widget_prompt_shown') ?? false;
+                  if (!shown) {
+                    shouldShowPrompt = true;
+                    await prefs.setBool('widget_prompt_shown', true);
+                  }
+                }
+
+                if (context.mounted) {
+                  navigator.pop();
+                  if (shouldShowPrompt && navigator.context.mounted) {
+                    final addWidget = await showWidgetPromptDialog(navigator.context);
+                    if (addWidget) {
+                      await WidgetService.requestWidgetPin();
+                    }
+                  }
                 }
               }
             : null,

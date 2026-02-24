@@ -4,6 +4,9 @@ import 'package:dienos_calendar/ui/features/more/background_setting_screen.dart'
 import 'package:dienos_calendar/ui/features/memo_list/memo_list_screen.dart';
 import 'package:dienos_calendar/ui/features/emotion_list/emotion_list_screen.dart';
 import 'package:dienos_calendar/ui/theme/theme_controller.dart';
+import 'package:dienos_calendar/utils/ui_utils.dart';
+import 'package:dienos_calendar/utils/widget_service.dart';
+import 'package:dienos_calendar/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -120,7 +123,10 @@ class MoreScreen extends ConsumerWidget {
                 title: "컬러 모드 설정",
                 trailing: Text(
                   themeState.themeMode.label,
-                  style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.5)),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.5),
+                  ),
                 ),
                 onTap: () {
                   showModalBottomSheet(
@@ -128,6 +134,34 @@ class MoreScreen extends ConsumerWidget {
                     backgroundColor: Colors.transparent,
                     builder: (context) => _buildThemeModePicker(context, ref, themeState),
                   );
+                },
+              ),
+              const SizedBox(height: 24),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "위젯 설정",
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              MoreSettingsTile(
+                icon: Icons.widgets_outlined,
+                title: "홈 화면에 위젯 추가",
+                onTap: () async {
+                  await WidgetService.requestWidgetPin();
+                },
+              ),
+              const SizedBox(height: 12),
+              MoreSettingsTile(
+                icon: Icons.refresh,
+                title: "위젯 새로 고침",
+                onTap: () async {
+                  await WidgetService.update(ref.read(getEventsUseCaseProvider));
+                  if (context.mounted) showAppSnackBar(context, '위젯이 새로 고쳐졌어요 ✓');
                 },
               ),
             ],
@@ -138,10 +172,14 @@ class MoreScreen extends ConsumerWidget {
   }
 
   Widget _buildThemeModePicker(BuildContext context, WidgetRef ref, ThemeState themeState) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: bgColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: Column(
