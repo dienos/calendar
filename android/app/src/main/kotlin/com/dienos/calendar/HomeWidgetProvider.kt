@@ -138,11 +138,11 @@ class HomeWidgetProvider : HomeWidgetBaseProvider() {
 
     private fun emotionLabelToDrawable(context: Context, label: String): Int {
         val resName = when (label) {
-            "정말 좋음" -> "emotion_very_good"
-            "좋음" -> "emotion_good"
-            "보통" -> "emotion_soso"
-            "나쁨" -> "emotion_bad"
-            "끔찍함" -> "emotion_very_bad"
+            "정말 좋음", "very_good" -> "emotion_very_good"
+            "좋음", "good" -> "emotion_good"
+            "보통", "soso" -> "emotion_soso"
+            "나쁨", "bad" -> "emotion_bad"
+            "끔찍함", "very_bad" -> "emotion_very_bad"
             else -> return 0
         }
         return context.resources.getIdentifier(resName, "drawable", context.packageName)

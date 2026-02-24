@@ -14,21 +14,38 @@ class WidgetService {
     try {
       final allEvents = await getEventsUseCase();
       final today = DateTime.now();
-      final weekStart = today.subtract(const Duration(days: 6));
+      final weekStart = DateTime.utc(today.year, today.month, today.day).subtract(const Duration(days: 6));
 
       for (var i = 0; i < 7; i++) {
-        final date = weekStart.add(Duration(days: i));
-        final dateKey = DateTime.utc(date.year, date.month, date.day);
+        final dateKey = weekStart.add(Duration(days: i));
         final records = allEvents[dateKey] ?? [];
         final log = records.whereType<DailyLogRecord>().firstOrNull;
 
-        final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        String emotionKey = '';
+        if (log != null) {
+          switch (log.emotion) {
+            case '정말 좋음':
+              emotionKey = 'very_good';
+              break;
+            case '좋음':
+              emotionKey = 'good';
+              break;
+            case '보통':
+              emotionKey = 'soso';
+              break;
+            case '나쁨':
+              emotionKey = 'bad';
+              break;
+            case '끔찍함':
+              emotionKey = 'very_bad';
+              break;
+          }
+        }
 
-        await HomeWidget.saveWidgetData<String>('date_$i', dateStr);
-        await HomeWidget.saveWidgetData<String>('emotion_$i', log?.emotion ?? '');
+        await HomeWidget.saveWidgetData<String>('emotion_$i', emotionKey);
       }
 
-      await HomeWidget.updateWidget(androidName: _androidProviderName);
+      await HomeWidget.updateWidget(androidName: _androidProviderName, qualifiedAndroidName: _androidProviderName);
     } catch (_) {}
   }
 
