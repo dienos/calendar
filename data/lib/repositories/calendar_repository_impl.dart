@@ -242,4 +242,26 @@ class CalendarRepositoryImpl implements CalendarRepository {
       }),
     );
   }
+
+  @override
+  Future<List<DailyLogRecord>> getAllLogs() async {
+    if (_database == null) return [];
+
+    final entities = await _database.dailyLogDao.findAllDailyLogs();
+    return entities
+        .map((e) => DailyLogRecord(e.emotion, e.memo, date: e.date, id: e.id))
+        .toList();
+  }
+
+  @override
+  Future<void> insertOrReplaceLog(DailyLogRecord record) async {
+    if (_database == null || record.date == null) return;
+
+    final entity = DailyLogEntity(
+      emotion: record.emotion,
+      memo: record.memo,
+      date: record.date!,
+    );
+    await _database.dailyLogDao.insertOrReplaceDailyLog(entity);
+  }
 }

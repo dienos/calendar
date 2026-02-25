@@ -1,11 +1,15 @@
 import 'package:data/datasources/local/app_database.dart';
+import 'package:data/repositories/backup_repository_impl.dart';
 import 'package:data/repositories/calendar_repository_impl.dart';
 import 'package:data/repositories/daily_log_repository_impl.dart';
 import 'package:domain/entities/monthly_stats.dart';
+import 'package:domain/repositories/backup_repository.dart';
 import 'package:domain/repositories/calendar_repository.dart';
 import 'package:domain/repositories/daily_log_repository.dart';
+import 'package:domain/usecases/export_backup_usecase.dart';
 import 'package:domain/usecases/get_daily_log_detail_usecase.dart';
 import 'package:domain/usecases/get_monthly_stats_usecase.dart';
+import 'package:domain/usecases/import_backup_usecase.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:domain/entities/daily_log_record.dart';
 import 'package:domain/usecases/add_event_usecase.dart';
@@ -14,6 +18,7 @@ import 'package:domain/usecases/get_memo_logs_usecase.dart';
 
 import 'ui/features/add_daily_log/add_daily_log_screen_view_model.dart';
 import 'ui/features/calendar/calendar_view_model.dart';
+import 'ui/features/more/backup_view_model.dart';
 import 'package:domain/usecases/update_event_usecase.dart';
 import 'package:domain/usecases/get_statistics_usecase.dart';
 
@@ -124,6 +129,28 @@ final emotionListViewModelProvider = StateNotifierProvider.autoDispose
       final useCase = ref.watch(getMonthlyLogsUseCaseProvider);
       return EmotionListViewModel(useCase, month);
     });
+
+final backupRepositoryProvider = Provider<BackupRepository>((ref) {
+  return BackupRepositoryImpl();
+});
+
+final exportBackupUseCaseProvider = Provider<ExportBackupUseCase>((ref) {
+  final calendarRepo = ref.watch(calendarRepositoryProvider);
+  return ExportBackupUseCase(calendarRepo);
+});
+
+final importBackupUseCaseProvider = Provider<ImportBackupUseCase>((ref) {
+  final calendarRepo = ref.watch(calendarRepositoryProvider);
+  final backupRepo = ref.watch(backupRepositoryProvider);
+  return ImportBackupUseCase(calendarRepo, backupRepo);
+});
+
+final backupViewModelProvider = StateNotifierProvider<BackupViewModel, BackupState>((ref) {
+  final exportUseCase = ref.watch(exportBackupUseCaseProvider);
+  final importUseCase = ref.watch(importBackupUseCaseProvider);
+  final backupRepo = ref.watch(backupRepositoryProvider);
+  return BackupViewModel(exportUseCase, importUseCase, backupRepo);
+});
 
 class MonthlyStatsViewModel extends StateNotifier<MonthlyStats> {
   final DateTime _month;

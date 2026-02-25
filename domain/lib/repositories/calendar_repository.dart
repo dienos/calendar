@@ -8,7 +8,6 @@ abstract class CalendarRepository {
 
   Future<void> updateEvent(DateTime date, DailyRecord updatedRecord);
 
-  // --- New Methods for Monthly Highlights ---
   Future<int> countMoodEntriesForMonth(String yearMonth);
 
   Future<int> countMemoEntriesForMonth(String yearMonth);
@@ -20,4 +19,8 @@ abstract class CalendarRepository {
   Future<List<DailyLogRecord>> getLogsByRange(DateTime start, DateTime end);
 
   Future<List<DailyLogRecord>> getMemoLogs(DateTime month);
+
+  Future<List<DailyLogRecord>> getAllLogs();
+
+  Future<void> insertOrReplaceLog(DailyLogRecord record);
 }
