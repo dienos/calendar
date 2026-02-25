@@ -1,10 +1,17 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:archive/archive.dart';
 import 'package:domain/entities/backup_result.dart';
 import 'package:domain/repositories/backup_repository.dart';
 import 'package:domain/usecases/export_backup_usecase.dart';
 import 'package:domain/usecases/import_backup_usecase.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../utils/permission_helper.dart';
+import '../../../providers.dart';
 
 sealed class BackupState {
   const BackupState();
@@ -32,19 +39,22 @@ class BackupViewModel extends StateNotifier<BackupState> {
   final ExportBackupUseCase _exportUseCase;
   final ImportBackupUseCase _importUseCase;
   final BackupRepository _backupRepository;
+  final Ref _ref;
 
-  BackupViewModel(this._exportUseCase, this._importUseCase, this._backupRepository) : super(const BackupIdle());
+  BackupViewModel(this._exportUseCase, this._importUseCase, this._backupRepository, this._ref)
+    : super(const BackupIdle());
 
   Future<BackupResult?> prepareImport() async {
     if (state is BackupLoading) return null;
     state = const BackupLoading();
 
-    // 권한 체크
     final permission = await PermissionHelper.requestStoragePermission();
     if (permission != PermissionResult.granted) {
-      state = BackupError(
-        permission == PermissionResult.permanentlyDenied ? '저장소 권한이 영구적으로 거부되었습니다. 설정에서 허용해 주세요' : '저장소 접근 권한이 필요합니다',
-      );
+      if (permission == PermissionResult.permanentlyDenied) {
+        state = const BackupError('저장소 권한이 영구적으로 거부되었습니다. 설정에서 허용해 주세요');
+      } else {
+        state = const BackupIdle();
+      }
       return null;
     }
 
@@ -74,10 +84,16 @@ class BackupViewModel extends StateNotifier<BackupState> {
       if (!mounted) return;
       if (result.successCount == 0) {
         state = const BackupError('불러올 수 있는 데이터가 없어요 (파일을 확인해 주세요)');
-      } else if (result.failCount > 0) {
-        state = BackupSuccess('${result.successCount}개의 기록을 불러왔어요 ✓ (실패: ${result.failCount}건)');
       } else {
-        state = BackupSuccess('${result.successCount}개의 기록을 모두 불러왔어요 ✓');
+        _ref.invalidate(calendarViewModelProvider);
+        _ref.invalidate(getEventsUseCaseProvider);
+        _ref.invalidate(dailyLogDetailProvider);
+
+        if (result.failCount > 0) {
+          state = BackupSuccess('${result.successCount}개의 기록을 불러왔어요 ✓ (실패: ${result.failCount}건)');
+        } else {
+          state = BackupSuccess('${result.successCount}개의 기록을 모두 불러왔어요 ✓');
+        }
       }
     } catch (_) {
       if (mounted) state = const BackupError('오류가 발생했어요. 다시 시도해 주세요');
@@ -88,35 +104,50 @@ class BackupViewModel extends StateNotifier<BackupState> {
     if (state is BackupLoading) return;
     state = const BackupLoading();
 
-    // 권한 체크
     final permission = await PermissionHelper.requestStoragePermission();
     if (permission != PermissionResult.granted) {
-      state = BackupError(
-        permission == PermissionResult.permanentlyDenied ? '저장소 권한이 영구적으로 거부되었습니다. 설정에서 허용해 주세요' : '저장소 접근 권한이 필요합니다',
-      );
+      if (permission == PermissionResult.permanentlyDenied) {
+        state = const BackupError('저장소 권한이 영구적으로 거부되었습니다. 설정에서 허용해 주세요');
+      } else {
+        state = const BackupIdle();
+      }
       return;
     }
 
     try {
-      // 1. 폴더 선택을 먼저 수행 (사용자 인터랙션)
-      final path = await _backupRepository.pickDirectoryPath();
-      if (path == null) {
+      final lines = await _exportUseCase();
+      final content = lines.join('\n');
+      final contentBytes = utf8.encode(content);
+
+      final archive = Archive();
+      archive.addFile(ArchiveFile('data.txt', contentBytes.length, contentBytes));
+
+      final docDir = await getApplicationDocumentsDirectory();
+      final imageDir = Directory('${docDir.path}/images');
+      if (await imageDir.exists()) {
+        final imageFiles = imageDir.listSync().whereType<File>().toList();
+        for (final file in imageFiles) {
+          final bytes = await file.readAsBytes();
+          final fileName = file.path.split('/').last;
+          archive.addFile(ArchiveFile('images/$fileName', bytes.length, bytes));
+        }
+      }
+
+      final zipBytes = Uint8List.fromList(ZipEncoder().encode(archive)!);
+      final now = DateTime.now();
+      final defaultFileName = 'backup_${DateFormat('yyyyMMdd_HHmmss').format(now)}.zip';
+      final success = await _backupRepository.saveBackupFile(defaultFileName, zipBytes);
+
+      if (!success) {
         state = const BackupIdle();
         return;
       }
-
-      // 2. 백업 데이터 준비
-      final lines = await _exportUseCase();
-
-      // 3. 실제 파일 저장
-      await _backupRepository.saveToFile(lines, path);
 
       if (!mounted) return;
       state = const BackupSuccess('백업 완료! ✓');
     } on NoDataException {
       if (mounted) state = const BackupError('내보낼 데이터가 없어요');
     } catch (e) {
-      // 에러 로그 출력하여 추적 용이성 확보
       debugPrint('Export Error: $e');
       if (mounted) state = const BackupError('파일 저장에 실패했어요. 다시 시도해 주세요');
     }

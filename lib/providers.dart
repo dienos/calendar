@@ -149,7 +149,7 @@ final backupViewModelProvider = StateNotifierProvider<BackupViewModel, BackupSta
   final exportUseCase = ref.watch(exportBackupUseCaseProvider);
   final importUseCase = ref.watch(importBackupUseCaseProvider);
   final backupRepo = ref.watch(backupRepositoryProvider);
-  return BackupViewModel(exportUseCase, importUseCase, backupRepo);
+  return BackupViewModel(exportUseCase, importUseCase, backupRepo, ref);
 });
 
 class MonthlyStatsViewModel extends StateNotifier<MonthlyStats> {

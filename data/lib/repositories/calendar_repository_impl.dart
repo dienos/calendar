@@ -28,9 +28,20 @@ class CalendarRepositoryImpl implements CalendarRepository {
         dailyLogEntity.date.month,
         dailyLogEntity.date.day,
       );
+
+      final images = await _database.dailyLogDao.findImagesByLogId(
+        dailyLogEntity.id!,
+      );
+      final resolvedImages = await Future.wait(
+        images.map((i) => _resolveImagePath(i.path)),
+      );
+
       final dailyLogRecord = DailyLogRecord(
         dailyLogEntity.emotion,
         dailyLogEntity.memo,
+        date: date,
+        id: dailyLogEntity.id,
+        images: resolvedImages,
       );
 
       if (events[date] == null) {
@@ -146,6 +157,13 @@ class CalendarRepositoryImpl implements CalendarRepository {
     return imageDir;
   }
 
+  Future<String> _resolveImagePath(String storedPath) async {
+    if (storedPath.isEmpty) return storedPath;
+    final appDir = await _getAppImageDirectory();
+    final fileName = storedPath.split('/').last;
+    return '${appDir.path}/$fileName';
+  }
+
   @override
   Future<int> countMemoEntriesForMonth(String yearMonth) async {
     if (_database == null) return 0;
@@ -183,12 +201,15 @@ class CalendarRepositoryImpl implements CalendarRepository {
     return Future.wait(
       entities.map((e) async {
         final images = await _database.dailyLogDao.findImagesByLogId(e.id!);
+        final resolvedImages = await Future.wait(
+          images.map((i) => _resolveImagePath(i.path)),
+        );
         return DailyLogRecord(
           e.emotion,
           e.memo,
           date: e.date,
           id: e.id,
-          images: images.map((i) => i.path).toList(),
+          images: resolvedImages,
         );
       }),
     );
@@ -209,12 +230,15 @@ class CalendarRepositoryImpl implements CalendarRepository {
     return Future.wait(
       entities.map((e) async {
         final images = await _database.dailyLogDao.findImagesByLogId(e.id!);
+        final resolvedImages = await Future.wait(
+          images.map((i) => _resolveImagePath(i.path)),
+        );
         return DailyLogRecord(
           e.emotion,
           e.memo,
           date: e.date,
           id: e.id,
-          images: images.map((i) => i.path).toList(),
+          images: resolvedImages,
         );
       }),
     );
@@ -232,12 +256,15 @@ class CalendarRepositoryImpl implements CalendarRepository {
     return Future.wait(
       entities.map((e) async {
         final images = await _database.dailyLogDao.findImagesByLogId(e.id!);
+        final resolvedImages = await Future.wait(
+          images.map((i) => _resolveImagePath(i.path)),
+        );
         return DailyLogRecord(
           e.emotion,
           e.memo,
           date: e.date,
           id: e.id,
-          images: images.map((i) => i.path).toList(),
+          images: resolvedImages,
         );
       }),
     );
@@ -248,20 +275,55 @@ class CalendarRepositoryImpl implements CalendarRepository {
     if (_database == null) return [];
 
     final entities = await _database.dailyLogDao.findAllDailyLogs();
-    return entities
-        .map((e) => DailyLogRecord(e.emotion, e.memo, date: e.date, id: e.id))
-        .toList();
+    return Future.wait(
+      entities.map((e) async {
+        final images = await _database.dailyLogDao.findImagesByLogId(e.id!);
+        final resolvedImages = await Future.wait(
+          images.map((i) => _resolveImagePath(i.path)),
+        );
+        return DailyLogRecord(
+          e.emotion,
+          e.memo,
+          date: e.date,
+          id: e.id,
+          images: resolvedImages,
+        );
+      }),
+    );
   }
 
   @override
   Future<void> insertOrReplaceLog(DailyLogRecord record) async {
     if (_database == null || record.date == null) return;
 
+    // 1. 기존 로그 확인
+    final existingLog = await _database.dailyLogDao.findDailyLogByDate(
+      record.date!,
+    );
+
+    // 2. 로그 엔티티 생성 및 삽입/교체
     final entity = DailyLogEntity(
+      id: existingLog?.id,
       emotion: record.emotion,
       memo: record.memo,
       date: record.date!,
     );
-    await _database.dailyLogDao.insertOrReplaceDailyLog(entity);
+    final logId = await _database.dailyLogDao.insertOrReplaceDailyLog(entity);
+
+    // 3. 이미지 정보 업데이트
+    if (existingLog?.id != null) {
+      await _database.imageDao.deleteImagesByDailyLogId(existingLog!.id!);
+    }
+
+    // 4. 새 이미지 정보 등록 (백업 파일의 경로에서 파일명만 추출하여 현재 앱 경로로 보정하여 저장)
+    if (record.images.isNotEmpty) {
+      for (final path in record.images) {
+        if (path.isEmpty) continue;
+        final resolvedPath = await _resolveImagePath(path);
+        await _database.imageDao.insertImage(
+          ImageEntity(dailyLogId: logId, path: resolvedPath),
+        );
+      }
+    }
   }
 }

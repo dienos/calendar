@@ -9,7 +9,9 @@ class ImportBackupUseCase {
 
   ImportBackupUseCase(this._calendarRepository, this._backupRepository);
 
-  Future<BackupResult?> pickFile() => _backupRepository.readFromFile();
+  Future<BackupResult?> pickFile() async {
+    return await _backupRepository.readFromFile();
+  }
 
   Future<BackupResult> doImport(List<String> lines) async {
     final validEmotions = {'정말 좋음', '좋음', '보통', '나쁨', '끔찍함'};
@@ -17,28 +19,52 @@ class ImportBackupUseCase {
     int fail = 0;
 
     for (final line in lines.skip(1)) {
-      if (line.trim().isEmpty) continue;
+      final trimmedLine = line.trim();
+      if (trimmedLine.isEmpty) continue;
+
       try {
-        final parts = line.split('|');
-        if (parts.length != 3) {
+        final parts = trimmedLine.split('|').map((p) => p.trim()).toList();
+
+        if (parts.length < 2) {
           fail++;
           continue;
         }
 
-        final date = DateTime.parse(parts[0].trim());
-        final emotion = parts[1].trim();
-        final memo = parts[2].replaceAll(r'\n', '\n');
+        final dateStr = parts[0];
+        final emotion = parts[1];
+        final memoRaw = parts.length > 2 ? parts[2] : '';
+        final imageRaw = parts.length > 3 ? parts[3] : '';
+
+        if (dateStr.isEmpty || emotion.isEmpty) {
+          fail++;
+          continue;
+        }
+
+        final parsedDate = DateTime.parse(dateStr);
+        final date = DateTime.utc(
+          parsedDate.year,
+          parsedDate.month,
+          parsedDate.day,
+        );
 
         if (!validEmotions.contains(emotion)) {
           fail++;
           continue;
         }
 
+        final memo = memoRaw.replaceAll(r'\|', '|').replaceAll(r'\n', '\n');
+        final images = imageRaw
+            .split(',')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
+
         await _calendarRepository.insertOrReplaceLog(
-          DailyLogRecord(emotion, memo, date: date),
+          DailyLogRecord(emotion, memo, date: date, images: images),
         );
         success++;
-      } catch (_) {
+      } catch (e) {
+        print('Import parsing error on line: $line, error: $e');
         fail++;
       }
     }

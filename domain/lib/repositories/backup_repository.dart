@@ -1,7 +1,7 @@
+import 'dart:typed_data';
 import 'package:domain/entities/backup_result.dart';
 
 abstract class BackupRepository {
-  Future<String?> pickDirectoryPath();
-  Future<void> saveToFile(List<String> lines, String directoryPath);
+  Future<bool> saveBackupFile(String defaultFileName, Uint8List bytes);
   Future<BackupResult?> readFromFile();
 }

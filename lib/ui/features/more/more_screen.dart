@@ -236,13 +236,17 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
     final vm = ref.read(backupViewModelProvider.notifier);
     final isLoading = backupState is BackupLoading;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dialogBgColor = isDark ? Colors.white : Colors.black;
+    final dialogTextColor = isDark ? Colors.black : Colors.white;
+
     ref.listen(backupViewModelProvider, (_, next) {
       if (next is BackupSuccess) {
         showAppSnackBar(context, next.message);
         vm.reset();
       } else if (next is BackupError) {
         if (next.message.contains('영구적으로 거부')) {
-          _showPermissionSettingsDialog(context);
+          _showPermissionSettingsDialog(context, dialogBgColor, dialogTextColor);
         } else {
           showAppSnackBar(context, next.message);
         }
@@ -270,7 +274,7 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
           trailing: isLoading
               ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
               : null,
-          onTap: isLoading ? () {} : () => _onExportTap(context, vm),
+          onTap: isLoading ? () {} : () => _onExportTap(context, vm, dialogBgColor, dialogTextColor),
         ),
         const SizedBox(height: 12),
         MoreSettingsTile(
@@ -279,30 +283,38 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
           trailing: isLoading
               ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
               : null,
-          onTap: isLoading ? () {} : () => _onImportTap(context, vm),
+          onTap: isLoading ? () {} : () => _onImportTap(context, vm, dialogBgColor, dialogTextColor),
         ),
       ],
     );
   }
 
-  void _showPermissionSettingsDialog(BuildContext context) {
+  void _showPermissionSettingsDialog(BuildContext context, Color bgColor, Color textColor) {
     showDialog(
       context: context,
       builder: (ctx) {
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
         return AlertDialog(
-          backgroundColor: isDark ? Colors.grey.shade900 : Colors.white,
+          backgroundColor: bgColor,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('권한 설정 안내'),
-          content: const Text('백업 및 복원 기능을 이용하려면 저장소 접근 권한이 필요합니다. 설정 화면에서 권한을 허용해 주세요.'),
+          title: Text(
+            '권한 설정 안내',
+            style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+          ),
+          content: Text('백업 및 복원 기능을 이용하려면 저장소 접근 권한이 필요합니다. 설정 화면에서 권한을 허용해 주세요.', style: TextStyle(color: textColor)),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('취소', style: TextStyle(color: textColor.withOpacity(0.7))),
+            ),
             TextButton(
               onPressed: () {
                 PermissionHelper.openSettings();
                 Navigator.pop(ctx);
               },
-              child: const Text('설정으로 이동'),
+              child: Text(
+                '설정으로 이동',
+                style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         );
@@ -310,19 +322,40 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
     );
   }
 
-  Future<void> _onExportTap(BuildContext context, BackupViewModel vm) async {
+  Future<void> _onExportTap(BuildContext context, BackupViewModel vm, Color bgColor, Color textColor) async {
+    final permission = await PermissionHelper.requestStoragePermission();
+    if (permission != PermissionResult.granted) {
+      if (!context.mounted) return;
+      if (permission == PermissionResult.permanentlyDenied) {
+        _showPermissionSettingsDialog(context, bgColor, textColor);
+      }
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     final guideShown = prefs.getBool('backup_guide_shown') ?? false;
 
     if (!guideShown && context.mounted) {
-      final shouldProceed = await showDialog<bool>(context: context, builder: (ctx) => _ExportGuideDialog());
+      final shouldProceed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => _ExportGuideDialog(bgColor: bgColor, textColor: textColor),
+      );
       if (shouldProceed != true) return;
     }
 
     await vm.exportBackup();
   }
 
-  Future<void> _onImportTap(BuildContext context, BackupViewModel vm) async {
+  Future<void> _onImportTap(BuildContext context, BackupViewModel vm, Color bgColor, Color textColor) async {
+    final permission = await PermissionHelper.requestStoragePermission();
+    if (permission != PermissionResult.granted) {
+      if (!context.mounted) return;
+      if (permission == PermissionResult.permanentlyDenied) {
+        _showPermissionSettingsDialog(context, bgColor, textColor);
+      }
+      return;
+    }
+
     final result = await vm.prepareImport();
     if (result == null || !context.mounted) return;
 
@@ -333,15 +366,29 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) {
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
         return AlertDialog(
-          backgroundColor: isDark ? Colors.grey.shade900 : Colors.white,
+          backgroundColor: bgColor,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('백업 파일로 복원하기'),
-          content: Text('선택한 파일: $fileName\n\n백업 파일의 기록이 현재 앱에 추가됩니다.\n같은 날짜의 기록이 있다면 백업 파일 내용으로 바뀝니다.'),
+          title: Text(
+            '백업 파일로 복원하기',
+            style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+          ),
+          content: Text(
+            '선택한 파일: $fileName\n\n백업 파일의 기록이 현재 앱에 추가됩니다.\n같은 날짜의 기록이 있다면 백업 파일 내용으로 바뀝니다.',
+            style: TextStyle(color: textColor),
+          ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
-            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('복원')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text('취소', style: TextStyle(color: textColor.withOpacity(0.7))),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(
+                '복원',
+                style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         );
       },
@@ -352,6 +399,10 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
 }
 
 class _ExportGuideDialog extends StatefulWidget {
+  final Color bgColor;
+  final Color textColor;
+  const _ExportGuideDialog({required this.bgColor, required this.textColor});
+
   @override
   State<_ExportGuideDialog> createState() => _ExportGuideDialogState();
 }
@@ -361,10 +412,8 @@ class _ExportGuideDialogState extends State<_ExportGuideDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Dialog(
-      backgroundColor: isDark ? Colors.grey.shade900 : Colors.white,
+      backgroundColor: widget.bgColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Padding(
@@ -376,9 +425,12 @@ class _ExportGuideDialogState extends State<_ExportGuideDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('백업 폴더 선택', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  '백업 파일 저장 안내',
+                  style: TextStyle(color: widget.textColor, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: Icon(Icons.close, color: widget.textColor),
                   onPressed: () => Navigator.of(context).pop(false),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -387,21 +439,27 @@ class _ExportGuideDialogState extends State<_ExportGuideDialog> {
             ),
             const SizedBox(height: 16),
             Text(
-              '다음 화면에서 백업 파일을 저장할 폴더를 선택해 주세요.\n선택한 폴더에 backup_날짜_시간.txt 파일이 저장됩니다.',
-              style: theme.textTheme.bodyMedium,
+              '다음 화면에서 백업 파일을 저장할 위치를 선택해 주세요.\n지정한 위치에 안전하게 백업 파일이 생성됩니다.',
+              style: TextStyle(color: widget.textColor, height: 1.5),
             ),
             const SizedBox(height: 20),
             GestureDetector(
               onTap: () => setState(() => _doNotShowAgain = !_doNotShowAgain),
               child: Row(
                 children: [
-                  Checkbox(
-                    value: _doNotShowAgain,
-                    onChanged: (v) => setState(() => _doNotShowAgain = v ?? false),
-                    visualDensity: VisualDensity.compact,
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: Checkbox(
+                      value: _doNotShowAgain,
+                      onChanged: (v) => setState(() => _doNotShowAgain = v ?? false),
+                      activeColor: widget.textColor,
+                      checkColor: widget.bgColor,
+                      side: BorderSide(color: widget.textColor.withOpacity(0.5)),
+                    ),
                   ),
-                  const SizedBox(width: 4),
-                  Text('다시 보지 않기', style: theme.textTheme.bodyMedium),
+                  const SizedBox(width: 8),
+                  Text('다시 보지 않기', style: TextStyle(color: widget.textColor.withOpacity(0.8))),
                 ],
               ),
             ),
@@ -417,10 +475,11 @@ class _ExportGuideDialogState extends State<_ExportGuideDialog> {
                   if (context.mounted) Navigator.pop(context, true);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: Colors.white,
+                  backgroundColor: widget.textColor,
+                  foregroundColor: widget.bgColor,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
                 ),
                 child: const Text('확인', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ),

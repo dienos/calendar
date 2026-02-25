@@ -2,6 +2,7 @@ import 'package:dienos_calendar/providers.dart';
 import 'package:dienos_calendar/ui/common/gradient_background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dienos_calendar/utils/permission_helper.dart';
 import 'package:intl/intl.dart';
 
 import 'widgets/emotion_section.dart';
@@ -17,6 +18,18 @@ class DailyLogDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dailyLogAsync = ref.watch(dailyLogDetailProvider(date));
+
+    // 화면 진입 시 사진 권한 체크 (복원 후 이미지 로드를 보장하기 위함)
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final log = dailyLogAsync.value;
+      if (log != null && log.images.isNotEmpty) {
+        final result = await PermissionHelper.requestPhotoPermission();
+        if (result == PermissionResult.granted) {
+          // 권한이 허용되면 데이터를 다시 불러와 이미지를 로드함
+          ref.invalidate(dailyLogDetailProvider(date));
+        }
+      }
+    });
 
     return GradientBackground(
       child: Scaffold(

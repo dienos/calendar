@@ -16,8 +16,11 @@ class ExportBackupUseCase {
       final d = log.date!;
       final dateStr =
           '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-      final memoEscaped = log.memo.replaceAll('\n', r'\n');
-      lines.add('$dateStr|${log.emotion}|$memoEscaped');
+      final memoEscaped = log.memo
+          .replaceAll('|', r'\|')
+          .replaceAll('\n', r'\n');
+      final images = log.images.map((p) => p.split('/').last).join(',');
+      lines.add('$dateStr|${log.emotion}|$memoEscaped|$images');
     }
 
     return lines;
